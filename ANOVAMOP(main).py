@@ -3,6 +3,15 @@
 Created on Thu Feb  7 11:33:07 2019
 
 @author: babshava
+
+This is a Python implementation of ANOVAMOP 
+
+Original paper: 
+    Tabatabaei, Mohammad, et al. "ANOVA-MOP: ANOVA Decomposition for Multiobjective Optimization."
+    SIAM Journal on Optimization 28.4 (2018): 3260-3289.
+
+This impletation has been written as a tutorial for the impelementation of the ANOVAMOP algorithm proposed in the above article (on page 3279)  
+
 """
 
 
@@ -13,12 +22,13 @@ import numpy as np
 """
 Some predefined functions:
 """
-# Build the reduced incidence matrix Mδ with  ------------------------------
-# Mδ := [m_i^l]_{l,i} s.t \{ m_i^l = 1; if T_i^l >= C
-#                         \{ m_i^l = 0; if T_i^l < δ
-# where k is the number of objective functons, d is the number of variables and δ is threshold. 
 
 def BuildMdelta(k, d, delta, SM):
+    """" Building the reduced incidence matrix Mδ with  ------------------------------
+                 Mδ := [m_i^l]_{l,i} s.t \{ m_i^l = 1; if T_i^l >= C
+                                         \{ m_i^l = 0; if T_i^l < δ
+         where k is the number of objective functons, d is the number of variables and δ is threshold. 
+    """
     Mdelta = np.zeros((k,d))
     for l in range(k):
         for i in range(d):
@@ -31,7 +41,7 @@ def BuildMdelta(k, d, delta, SM):
 
 
 """
-Input: Let f : [0, 1]d → R^k be a black box vector function in (1). 
+Input: Let f : [0, 1]^d → R^k be a black box vector function in (1). 
 """
 d=5 #Number of variables
 k=5 #Number of objective functons
@@ -70,7 +80,7 @@ Alternatively, employ BPC [58] (Matthias Tan's method), which ﬁnds
   
   
 """
-2: Perform the anova analysis on ef and build the k × d sensitivity matrix SM.
+2: Perform the anova analysis on f and build the k × d sensitivity matrix SM.
 """
 
 
@@ -79,15 +89,36 @@ SM = np.array([[],    # SM will calculate with information from BPC method in 1
                ...,
                []])
 
-# e.g SM = np.array([[23, 549, 1, 48,38],[77, 4, 387, 12, 83], [45, 397, 8, 25, 1]])
+"""
+ e.g from the paper (p 3280-3281):
+ 
+ SM = np.array([[.333, .333, .333, .001, .001],
+                [.333, .333, .333, .001, .001],
+                [.333, .333, .333, .001, .001],
+                [.001, .001, .001, .499, .499],
+                [.001, .001, .001, .499, .499]])
+"""
+
+"""
+# initial check for reducability or decomposability of the SM (M) - before using delta
+"""
+Mdelta = np.array(SM[:]) # Initialize Mdelta as SM or M
+# Check if SM(M) is decomposable
+CheckD = CheckDecomposability(d, k, Mdelta)
+cc = CheckD[0]  # cc is a list of lists includes the  connected components of the graph
+Decomposable = CheckD[1] #  True if the matrix is decomposable and False if not
+reMdelta = CheckD[2] # re-ordered matrix Mδ is the second return of function CheckDecomposability(d, k, Mdelta)
+
+# is SM(M) is reducible
+Reducible = (~Mdelta.any(axis=0)).any()  # True if the matrix is reducible and False if not
 
 """
  3: Deﬁne a sorted list E = {e1, . . . , e(k.d)} of 
  all the entries of SM in an increasing order.
 """
  
-E = np.unique(SM) #The number of elements in E (er) is equal to k×d at the most; as the frequent elements are eliminated
-
+#E = np.unique(SM) #The number of elements in E (er) is equal to k×d at the most; as the frequent elements are eliminated [use in Matlab code, but bring problems in some specific cases]
+E = np.sort(SM, axis=None) #The number of elements in E (er) is equal to k×d, the frequent elements are not eliminated
 
 """
 4: Determine ω according to (11) and ﬁnd the maximum r such that er ≤ ω. 
@@ -98,7 +129,7 @@ E = np.unique(SM) #The number of elements in E (er) is equal to k×d at the most
 """
 # Assigning an upper bound for the threshold  ω
 
- w = SM.max(1).min()
+w = SM.max(1).min()
 
 maxnumthreshold = 0 # The maximum r such that er ≤ ω
 Thresholds = []  # 
@@ -116,11 +147,13 @@ Delta = []
 for j in range(d,maxnumthreshold):  # Note: d means d+1 since array counter begin from '0'
     Delta.append(Thresholds[j])  # The list Δ := {ed+1, . . . , er}
 
-        
- """
- If the problem is not decomposible; i.e. the incidence matrix M is not sparse enough 
+Delta = list(set(Delta)) # Remove the frequent elements from the list Δ
+Delta.sort()  
+      
+"""
+ If the problem is not decomposable; i.e. the incidence matrix M is not sparse enough 
  (as it occur in the most of real-life problems), Then we need and approximated problem 
- which is δ-decomposible or δ-reducible.
+ which is δ-decomposable or δ-reducible.
 
 To reach this purpose, we need to build a reduced incidence matrix Mδ:
     
@@ -139,19 +172,33 @@ To reach this purpose, we need to build a reduced incidence matrix Mδ:
 14: end if
 """       
 
-
-if delta > 0 : # 6: It means that user has been selected a value for threshold (delta) 
+        
+if delta > 0 and  not Reducible and not Decomposable : # 6: It means that user has been selected a value for threshold (delta) 
     Mdelta = BuildMdelta(k, d, delta, SM) # 7: Build the reduced incidence matrix Mδ with a predefined function BuildMdelta(k, d, delta, Mdelta)
-else:  # i.e. if delta == 0
+    # Check if SM(M) is decomposable
+    CheckD = CheckDecomposability(d, k, Mdelta)
+    cc = CheckD[0]  # cc is a list of lists includes the  connected components of the graph
+    Decomposable = CheckD[1] #  True if the matrix is decomposable and False if not
+    reMdelta = CheckD[2] # re-ordered matrix Mδ is the second return of function CheckDecomposability(d, k, Mdelta)
+    # is SM(M) is reducible
+    Reducible = (~Mdelta.any(axis=0)).any()  # True if the matrix is reducible and False if not
+
+else:  # i.e. if delta == 0 -> it means that delta was not selected by the user, then it needs to be chosen automatically
     # Check if Δ is empthy; Or
     # Check if Mδ is reducible i.e. if Mδ has a full column of zeroes; Or
-    # Check if Mδ is decomposible
-    while len(Delta) == 0 or (~Mdelta.any(axis=0)).any() or len(cc) >= 2:
+    # Check if Mδ is decomposable (using function: CheckDecomposability(d, k, Mdelta))
+    while len(Delta) != 0 and not Reducible and  not Decomposable:
         delta = Delta[0]  # 10: δ = min(e_i in Δ) [since Delta is sorted in an increasing order, then, the fist element of it is the minimum] 
         Mdelta = BuildMdelta(k, d, delta, SM) # 11: Build the reduced incidence matrix Mδ with a predefined function BuildMdelta(k, d, delta, Mdelta)
         del Delta[0]  # 12: Remove δ from Δ
-        CheckDecomposability(d, k, Mdelta)
-        
+        CheckD = CheckDecomposability(d, k, Mdelta)
+        cc = CheckD[0]  # cc is a list of lists includes the  connected components of the graph
+    # The problem is δ-decomposable if the graph has two or more connected components 
+    #(i.e. the corresponding matrix, at least, has two blocks).
+    # cc is the first return of function CheckDecomposability(d, k, Mdelta)
+        Decomposable = CheckD[1] #  True if the matrix is decomposable and False if not
+        reMdelta = CheckD[2] # re-ordered matrix Mδ is the second return of function CheckDecomposability(d, k, Mdelta)
+        Reducible = (~Mdelta.any(axis=0)).any()  # True if the matrix is reducible and False if not
 
 """
 15: if Mδ is decomposable then
@@ -178,17 +225,32 @@ else:  # i.e. if delta == 0
 23: end if
 """
 
-
-
-
-
-
-
-
-
-
-
-
+if Decomposable: # 15: If Mδ is decomposable
+    """
+    16
+    17
+    18
+    """
+    #18 if p1m is a list of lists includes p1, p2, ..., pm are the Pareto sets of the subproblems; repectively.
+    P = Cartesian_Product_of_m(p1m) # Pareto optimal set for the original problem
+    # Similarly, if f1m is a list of lists includes f1, f2, ..., fm are the Pareto frontier approximations of the subproblems; repectively.
+    F = Cartesian_Product_of_m(f1m) # Pareto optimal frontier for the original problem
+    
+elif Reducible:
+    # Remove the column of zero from the Mδ
+    ReducedMdelta = np.delete(Mdelta,np.where(~Mdelta.any(axis=0))[0], axis=1) #remove the columns that contain only 0
+    RemovedColumn = np.where(~Mdelta.any(axis=0))[0] + 1 # Shows the number of column which is removed
+    print("The variable which had no effect is x_", int(RemovedColumn))
+    
+    #(20) solve the reduced problem and return P and F
+    
+    P =     # Pareto optimal set for the original problem
+    F =     # Pareto optimal frontier for the original problem
+    
+else: # (21) if Δ is empthy
+    P = []
+    F = []
+    print("There are some common variables between subproblems, then the ANOVA-MOP cannot solve such problems.")
 
 
 
@@ -203,11 +265,6 @@ f^ℓ (x^(ν)) − fδ^ℓ (x(ν)) |
 .
  
 """
-
-
-
-
-
 
 
 
