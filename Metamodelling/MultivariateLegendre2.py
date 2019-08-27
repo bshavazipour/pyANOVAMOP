@@ -8,7 +8,7 @@ Created on Thu Apr  4 17:18:13 2019
 import numpy as np
 from scipy.special import comb
 
-
+from pyANOVAMOP.Metamodelling import orthonormal_polynomial_legendre,
 
 def MultivariateLegendre2(D, P, MaxIntOrder):
     """
@@ -52,13 +52,13 @@ def MultivariateLegendre2(D, P, MaxIntOrder):
             alpha[:,i] = alpha2[:,i] - alpha2[:,i-1]
             
         for k in range(No):
-            for l in range (No2):
+            for l in range(No2):
                 t += 1
                 for i in range(j):
                     MultivariateLegendre2[:,t] = MultivariateLegendre2[:,t] * PolynomialEvals[Combinations[k,i]-1][:,int(alpha[l,i])]
             
             
     
-    MultivariateLegendre2 = MultivariateLegendre2[:,0:t+1]
+    MultivariateLegendre2 = MultivariateLegendre2[:,0:t+1] # check if t+1 needs to be t, instead.
             
-    return MultivariateLegendre2       
+    return MultivariateLegendre2 

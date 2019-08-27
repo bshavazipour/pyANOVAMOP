@@ -144,7 +144,7 @@ def MultivariateLegendre2(D, P, MaxIntOrder):
             
             
     
-    MultivariateLegendre2 = MultivariateLegendre2[:,0:t+1]
+    MultivariateLegendre2 = MultivariateLegendre2[:,0:t+1] # check if t+1 needs to be t, instead.
             
     return MultivariateLegendre2       
 

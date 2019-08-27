@@ -16,9 +16,10 @@ def P_objective(
         Operation,
         Problem,
         M,
-        Input,
-        SubProblemObjectiveIndices,SubProblemVariablesIndices,NumVar,Bounds,lb,ub,FixedIndices, FixedValues, model
-        ):
+        Input
+        ):#,
+        #SubProblemObjectiveIndices,SubProblemVariablesIndices,NumVar,Bounds,lb,ub,FixedIndices, FixedValues, model
+        #):
     """
         
     """
@@ -96,8 +97,18 @@ def P_ALBERTO(Operation,Input):
 
 
 
-def P_Surrogate(Operation,M,Input,
-                SubProblemObjectiveIndices,SubProblemVariablesIndices,NumVar,Bounds,lb,ub,FixedIndices, FixedValues, model):
+def P_Surrogate(Operation,
+                M, # NumObj (e.g. 3)
+                Input, # Data.D
+                SubProblemObjectiveIndices, # active objtives' numbers in a list; e.g. [0,2,4]
+                SubProblemVariablesIndices, # active variables' numbers in a list; e.g. [0,1,2]
+                NumVar,
+                Bounds,
+                lb,
+                ub,
+                FixedIndices, 
+                FixedValues, 
+                model):
     
     """
     Surrogate problem, use in solving the subproblems via RVEA
@@ -105,7 +116,7 @@ def P_Surrogate(Operation,M,Input,
     Boundary = math.nan
     Coding = math.nan
     
-    #Population Initialization
+    #Population Initialization; randomly generate the initial population- it can be done in RVEA as well 
     if Operation == 'init':
         
         D = NumVar
@@ -122,12 +133,13 @@ def P_Surrogate(Operation,M,Input,
         NumPop = Input.shape[0]
         InputTemp = np.zeros((NumPop,len(SubProblemVariablesIndices) + len(FixedIndices)))
         InputTemp[:,FixedIndices] = np.matlib.repmat(FixedValues,NumPop,1)
-        InputTemp[:,SubProblemVariablesIndices] = Input
+        InputTemp[:,SubProblemVariablesIndices] = Input[:,SubProblemVariablesIndices]
         Input = MapSamples(InputTemp, np.vstack((-np.ones((1,len(lb))), np.ones((1,len(lb))))), np.vstack((lb,ub)))
         Output = np.zeros((NumPop,M))
         
-        for objective in range(M):
-            Output[:,objective] = SurrogatePrediction(Input,SurrogateDataInfo[SubProblemObjectiveIndices[objective]])
+        ¤Output = np.empty((NumPop,len(SubProblemObjectiveIndices)))
+        ¤for objective in SubProblemObjectiveIndices:#range(M):
+         ¤   Output[:,objective] = SurrogatePrediction(Input,SurrogateDataInfo[objective]) 
 
     return Output#,Boundary,Coding)
 
@@ -305,8 +317,8 @@ class testProblem(baseProblem):
             self.lower_limits = self.obj_func.min_bounds
             self.upper_limits = self.obj_func.max_bounds
             
-        elif name == "ALBERTO":
-            self.obj_func = P_ALBERTO(Operation,Input)
+        elif name == "BS1":
+            self.obj_func = P_BS1(Operation,Input)
             self.lower_limits = self.obj_func.min_bounds
             self.upper_limits = self.obj_func.max_bounds
             
@@ -340,27 +352,27 @@ from pyrvea.EAs.NSGAIII import NSGAIII
 from optproblems import dtlz
 
 
-class P_objective(baseProblem):
+class newProblem(baseProblem):
     """New problem description."""
     
-    def __init__(
-        self,
-        name = None, # problem name
-        num_of_objectives[float] = 0, # M
-        data = [], # Sample, Input
-        SubProblemObjectiveIndices = [], 
-        SubProblemVariablesIndices = [],
-        num_of_variables = None, # NumVar
-        Sub_problem_lb = [],
-        Sub_problem_ub = [],
-        lower_limits = [],
-        upper_limits = [],
-        FixedIndices = [],
-        FixedValues = [],
-        model = [], # SurrogateDataInfo
-        num_of_constraints = 0, # Not supported yet
+    #def __init__(
+        #self,
+        #name = None, # problem name
+        #num_of_objectives[float] = 0, # M
+        #data = [], # Sample, Input
+        #SubProblemObjectiveIndices = [], 
+        #SubProblemVariablesIndices = [],
+        #num_of_variables = None, # NumVar
+        #Sub_problem_lb = [],
+        #Sub_problem_ub = [],
+        #lower_limits = [],
+        #upper_limits = [],
+        #FixedIndices = [],
+        #FixedValues = [],
+        #model = [], # SurrogateDataInfo
+        #num_of_constraints = 0, # Not supported yet
              
-    ):
+    #):
         """
         Args:
         name :
@@ -379,24 +391,24 @@ class P_objective(baseProblem):
         num_of_constraints : Not supported yet
         """
         
-        super().__init__() # call the baseProblem __init__ function
+        #super().__init__() # call the baseProblem __init__ function
         
         
-        Sub_problem_lb = Bounds[0,:]
-        Sub_problem_ub = Bounds[1,:]
+        #Sub_problem_lb = Bounds[0,:]
+        #Sub_problem_ub = Bounds[1,:]
                 
-        if name == "P_ALBERTO":
-            self.obj_func = P_ALBERTO(Input)
-            self.lower_limits = self.obj_func.min_bounds
-            self.upper_limits = self.obj_func.max_bounds
+        #if name == "P_ALBERTO":
+            #self.obj_func = P_ALBERTO(Input)
+            #self.lower_limits = self.obj_func.min_bounds
+            #self.upper_limits = self.obj_func.max_bounds
             
-        elif name == "P_Surrogate":
-            self.obj_func = P_Surrogate(M,Input, SubProblemObjectiveIndices,SubProblemVariablesIndices,NumVar,Bounds,lb,ub,FixedIndices, FixedValues, model):
-            self.lower_limits = self.obj_func.min_bounds
-            self.upper_limits = self.obj_func.max_bounds
+        #elif name == "P_Surrogate":
+            #self.obj_func = P_Surrogate(M,Input, SubProblemObjectiveIndices,SubProblemVariablesIndices,NumVar,Bounds,lb,ub,FixedIndices, FixedValues, model):
+           # self.lower_limits = self.obj_func.min_bounds
+           # self.upper_limits = self.obj_func.max_bounds
             
-        else:
-            raise Exception(Problem,'Not Exist'.format(x))
+        #else:
+         #   raise Exception(Problem,'Not Exist'.format(x))
             
 
     
@@ -404,31 +416,12 @@ class P_objective(baseProblem):
     def objectives(self, decision_variables) -> list:
         """Use this method to calculate objective functions.
         Args:
-            decision_variables:
+            decision_variables: a sample  
         """
-        return self.obj_func(decision_variables) #objective_values
-
-
-
-
-
-
-
-    def objectives(self, decision_variables):
-        """Objective functions to be used in optimization. (here is P_ALBERTO)
-        Parameters
-        ----------
-        decision_variables : ndarray
-            The decision variables (data set)
         
-        -------
-        objectives : ndarray
-            The objective values 
-        Returns
-        """
         x = decision_variables
         
-        numSample, self.num_of_variables = np.shape(decision_variables)
+        numSample, self.num_of_variables = np.shape(np.matrix(x))
         
         epsilon = 0.1
                 
@@ -438,22 +431,22 @@ class P_objective(baseProblem):
         P4 = np.array([1, -1])
         P5 = np.array([-1, 1])
         
-        Phi1 = ((x[:,0:3] - np.ones((numSample,1)) * P1) ** 2).sum(axis=1)
-        Phi2 = ((x[:,0:3] - np.ones((numSample,1)) * P2) ** 2).sum(axis=1)
-        Phi3 = ((x[:,0:3] - np.ones((numSample,1)) * P3) ** 2).sum(axis=1)
-        Phi4 = ((x[:,3:5] - np.ones((numSample,1)) * P4) ** 2).sum(axis=1)
-        Phi5 = ((x[:,3:5] - np.ones((numSample,1)) * P5) ** 2).sum(axis=1)
+        Phi1 = ((x[0:3] - np.ones((numSample,1)) * P1) ** 2).sum(axis=1)
+        Phi2 = ((x[0:3] - np.ones((numSample,1)) * P2) ** 2).sum(axis=1)
+        Phi3 = ((x[0:3] - np.ones((numSample,1)) * P3) ** 2).sum(axis=1)
+        Phi4 = ((x[3:5] - np.ones((numSample,1)) * P4) ** 2).sum(axis=1)
+        Phi5 = ((x[3:5] - np.ones((numSample,1)) * P5) ** 2).sum(axis=1)
         
         Output = np.empty((numSample,5))
         Output[:,0] = Phi1 + epsilon * Phi4
-        Output[:,4] = Phi2 + epsilon * Phi5
+        Output[:,1] = Phi2 + epsilon * Phi5
         Output[:,2] = Phi3 + epsilon * (Phi4 + Phi5)
         Output[:,3] = Phi4 + epsilon * Phi1
-        Output[:,1] = Phi5 + epsilon * (Phi1 + Phi2)
+        Output[:,4] = Phi5 + epsilon * (Phi1 + Phi2)
         
-        return Output
-
-
+                
+        return Output #objective_values
+  
 name = "P_ALBERTO"
 #k = 10
 numobj = 5

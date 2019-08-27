@@ -9,12 +9,12 @@ Created on Thu Apr 11 16:52:00 2019
 Some user defined functions
 """
 import numpy as np
-import pandas as pd
-from itertools import repeat
+#import pandas as pd
+#from itertools import repeat
 from scipy.optimize import fsolve
 import math
 from scipy import stats
-#from MultivariateLegendre import orthonormal_polynomial_legendre, MultivariateLegendre2, MultivariateLegendre
+from pyANOVAMOP.Metamodelling import MultivariateLegendre2#, MultivariateLegendre # ,orthonormal_polynomial_legendre,
 
 def Pred(x0, md, check3, P, MaxIntOrder):
     """
@@ -209,7 +209,7 @@ def SimulateSobolIndices(model, X, W, Y2, mY, d, n, M2, Nf, R00, gamma0, gamma, 
         
     if L==1:
         #print('ANOVA Decomposition Index (columns 1:d), Probability=0, LCL (0.025 Quantile), Mean, UCL (0.975 Quantile) for Sobol Indices')
-        Sobol = np.hstack((AnovaIndicators[0:NI,:], np.ones((NI,1)), np.zeros((NI,3))))
+        #Sobol = np.hstack((AnovaIndicators[0:NI,:], np.ones((NI,1)), np.zeros((NI,3))))
         # print(Sobol)
         # xlswrite(Filename,{'ANOVA Decomposition Index (columns 1:d), Probability=0, LCL (0.025 Quantile), Mean, UCL (0.975 Quantile) for Sobol Indices'},'SobolIndices','A1')
         # xlswrite(Filename,Sobol,'SobolIndices','A2')
@@ -361,7 +361,7 @@ def SimulateSobolIndices(model, X, W, Y2, mY, d, n, M2, Nf, R00, gamma0, gamma, 
             
     # display('ANOVA decomposition index (columns 1:d), Probability<=0.0005, LCL (0.025 Quantile), Mean, UCL (0.975 Quantile), Probability>=0.9995 for Sobol Indices')
     # display('All values (except the ANOVA decomposition index, which are binary numbers) are rounded to three decimal places')
-    Sobol = np.hstack((AnovaIndicators[0:NI,:], np.round(np.hstack([Pr0, LCL, Est, UCL, Pr1]).dot(10 **3)) / 10**3 ))  
+    #Sobol = np.hstack((AnovaIndicators[0:NI,:], np.round(np.hstack([Pr0, LCL, Est, UCL, Pr1]).dot(10 **3)) / 10**3 ))  
     # disp(Sobol)                               
     # xlswrite(Filename,{'ANOVA decomposition index (columns 1:d), Probability<=0.0005, LCL (0.025 Quantile), Mean, UCL (0.975 Quantile), Probability>=0.9995 for Sobol Indices'},'SobolIndices','A1')
     # xlswrite(Filename,{'All values (except the ANOVA decomposition indices, which are binary numbers) are rounded to three decimal places'},'SobolIndices','A2')

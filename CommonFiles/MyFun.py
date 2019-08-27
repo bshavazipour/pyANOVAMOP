@@ -7,10 +7,10 @@ Created on Tue Jul 30 10:38:41 2019
 Myfun to evaluate the objective values
 """
 
-
+from pyANOVAMOP.CommonFiles.P_objective import P_objective
 
 import numpy as np
-import numpy.matlib
+#import numpy.matlib
 
 def MyFun(X0,lb,ub,ProbName,ObjInd,ObjNum): 
     """
@@ -19,9 +19,7 @@ def MyFun(X0,lb,ub,ProbName,ObjInd,ObjNum):
     
     X0 is the dataset D
     """
-    
-    
-    
+
     frange = ub - lb
     n = X0.shape[0]
     X = ((X0+1) * np.matlib.repmat(frange,n,1)) / 2 + np.matlib.repmat(lb,n,1)

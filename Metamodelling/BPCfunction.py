@@ -12,17 +12,18 @@ BPC as a function
 """
 
 import numpy as np
-import pandas as pd
+#import pandas as pd
 import itertools
 import math
-from scipy import stats
-import sobol_seq
+#from scipy import stats
+#import sobol_seq
 
 from scipy.spatial.distance import cdist  # To calculatr thr euclidean distance between tow sets of observations in a matrix form
-#from ScrambledSobolSequence import scramble, scrambled_sobol
-#from MultivariateLegendre import orthonormal_polynomial_legendre, MultivariateLegendre2, MultivariateLegendre
-#from Some_required_functions_for_BPCmain import Pred, Search, calculatem2lprob, calculatem2lprob2, invandlogdet
-#from Some_required_functions_for_BPCmain import CheckIfPosDef, SimulateSobolIndices, CdfDev, CDFEst, PiecewiseLinearCDF, ecdf
+from pyANOVAMOP.Metamodelling.ScrambledSobolSequence import scrambled_sobol # scramble,
+from pyANOVAMOP.Metamodelling import MultivariateLegendre2, MultivariateLegendre # ,orthonormal_polynomial_legendre,
+from pyANOVAMOP.Metamodelling.Some_required_functions_for_BPCmain import Pred, Search, invandlogdet #, calculatem2lprob, calculatem2lprob2, 
+from pyANOVAMOP.Metamodelling.Some_required_functions_for_BPCmain import SimulateSobolIndices #, CheckIfPosDef, CdfDev, CDFEst, PiecewiseLinearCDF, ecdf
+from pyANOVAMOP.CommonFiles import MyFun
 
 #from scipy.sparse import eye
 
@@ -66,6 +67,7 @@ def BPC(ProbName,ObjInd,ObjNum,lb,ub,MaxNumFunEval):
 
     #Dimension of problem (Number of variables)
     d = 5
+    k = 5 # Number of objectives
     #Maximum polynomial degree of orthonormal polynomial regressors
     P = 5
     #Maximum order of ANOVA functional components to allow in regression
@@ -122,8 +124,8 @@ def BPC(ProbName,ObjInd,ObjNum,lb,ub,MaxNumFunEval):
     # remeber, If G_i is the CDF of u_i, then v_i=2 * G(u_i) -1 is uniformly distributed in [-1, 1]. 
 
 
-    QuasiMCResampling = scrambled_sobol(d, n) #Resampling option (Not used in this version)
-    ReSampleIndex = 1
+    #QuasiMCResampling = scrambled_sobol(d, n) #Resampling option (Not used in this version)
+    #ReSampleIndex = 1
 
 
     """
