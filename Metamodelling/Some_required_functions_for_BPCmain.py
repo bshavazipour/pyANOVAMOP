@@ -14,7 +14,7 @@ import numpy as np
 from scipy.optimize import fsolve
 import math
 from scipy import stats
-from pyANOVAMOP.Metamodelling import MultivariateLegendre2#, MultivariateLegendre # ,orthonormal_polynomial_legendre,
+from pyANOVAMOP.Metamodelling.MultivariateLegendre2 import MultivariateLegendre2#, MultivariateLegendre # ,orthonormal_polynomial_legendre,
 
 def Pred(x0, md, check3, P, MaxIntOrder):
     """

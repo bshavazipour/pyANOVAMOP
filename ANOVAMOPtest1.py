@@ -6,11 +6,11 @@ Created on Mon Aug 26 12:59:13 2019
 """
 
 
-from pyrvea.Population.Population import Population
-from pyrvea.Problem.baseProblem import baseProblem
-from pyrvea.EAs.RVEA import RVEA
-from pyrvea.EAs.NSGAIII import NSGAIII
-from optproblems import dtlz
+from pyANOVAMOP.Solvers.pyRVEA.pyrvea.Population.Population import Population
+from pyANOVAMOP.Solvers.pyRVEA.pyrvea.Problem.baseProblem import baseProblem
+from pyANOVAMOP.Solvers.pyRVEA.pyrvea.EAs.RVEA import RVEA
+from pyANOVAMOP.Solvers.pyRVEA.pyrvea.EAs.NSGAIII import NSGAIII
+#from optproblems import dtlz
 import numpy as np
 
 class ANOVAMOPtest1(baseProblem):
@@ -65,7 +65,7 @@ population_size = 105
 
 pop = Population(problem)
 
-pop.evolve(RVEA)
+pop.evolve(NSGAIII)
 
 pop.non_dominated()
 

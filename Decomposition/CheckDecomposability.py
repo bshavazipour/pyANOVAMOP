@@ -17,7 +17,7 @@ connected components of the graph are found by a breadth/deep ﬁrst search.
 It also retun the reordered matrix Mδ if it is decomposible at the second part.
 """
 
-#import Graph 
+from pyANOVAMOP.Decomposition.connectedComponents import Graph 
 
 def CheckDecomposability(d, k, Mdelta):
     # building the edges in (undirected) bipartite graph
@@ -148,91 +148,6 @@ A = np.array([[0,0,1,0,0,1,0,1],
 
 
 
-
-
-
-
-
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sat May 18 11:43:00 2019
-
-@author: alberto
-
-Hi Babooshka, 
-
-if I am correct, you need the determination of the rows and columns of a matrix that can form a diagonal block after reordering the rows and columns. 
-
-This seems that can be done with an algorithm finding CONNECTED COMPONENTS or CLUSTERS in a graph. 
-The graph is a bipartite graph where the two sets of nodes are inputs and outputs. 
-
-There is a package called PYTHON-IGRAPH that should do both things. It should suffice to rewrite the incidence matrix for the scope and then extract the components. 
-If you like I can try if it works for our purposes. 
-
------------
-
-I implemented the solution with a simpler package (scipy) without extra installations. 
-
-Here it is. 
-Should be self explanatory. Refer to incidence matrices as in figure 1 of anovamop paper. 
-
-Let me know if it is understandable and working as you expected. 
-
-"""
-
-from scipy.sparse import csr_matrix
-from scipy.sparse.csgraph import connected_components
-
-bgraph = [ 
-    [ 0, 1 , 0 ],
-    [ 1, 0 , 1 ]
-    ]
-
-print("\n\nincidence matrix: \n")
-for row in bgraph :
-    print(row)
-print("\n(rows: output variables, columns: input variables)\n")
-
-nout = len(bgraph) # Number of columns
-nin = len(bgraph[0]) # Number of rows
-print("in: ",nin,"  out:",nout,"\n")
-
-#  transformation in a suitable graph  with ninput + noutput nodes 
-
-graph = []
-for rigax in range(nin) : 
-    row = []
-    for x in range(nin) : row.append(0) 
-    for y in range(nout) : row.append(bgraph[y][rigax])
-    graph.append(row)
-for rigay in range(nout) : 
-    row = []
-    for x in range(nin) : row.append(bgraph[rigay][x]) 
-    for y in range(nout) : row.append(0)
-    graph.append(row)
-
-
-
-graph = csr_matrix(graph)
-#print(graph)
-
-n_components, labels = connected_components(csgraph=graph, directed=False, return_labels=True)
-print("number of components found: ",n_components)
-print("components legend : ",labels,"\n")
-
-components = []
-for com in range(n_components) : 
-    invarscomp = []
-    outvarscomp =[]
-    for inv in range(nin) : 
-        if labels[inv] == com : invarscomp.append(inv)
-    for outv in range(nout) : 
-        if labels[nin+outv] == com : outvarscomp.append(outv)
-    components.append([invarscomp,outvarscomp])
-    print(com+1,"° component, input vars: ",invarscomp,"  output vars: ",outvarscomp,"\n" ) 
-print("components summary: ",components)
 
 
 

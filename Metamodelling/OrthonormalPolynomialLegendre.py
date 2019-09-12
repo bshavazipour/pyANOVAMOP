@@ -27,7 +27,7 @@ def orthonormal_polynomial_legendre(p,x):
         return v
           
     v = np.zeros((n,p+1))
-    v[:,0]=1/sqrtb[0]
+    v[:,0] = 1 / sqrtb[0]
     
     if p < 1:
         return v
@@ -38,7 +38,6 @@ def orthonormal_polynomial_legendre(p,x):
         v[:, i+1] = (x * v[:, i] - sqrtb[i] * v[:, i-1]) / sqrtb[i+1]
                
     return v    
-    
     
     
         

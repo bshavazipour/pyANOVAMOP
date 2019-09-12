@@ -16,35 +16,35 @@ import itertools
 from scipy.special import comb
 
 
-def MultivariateLegendre(D, P, MaxIntOrder):
+def MultivariateLegendre(D, Pd, MaxIntOrder):
     """
     Inputs:
               
     Outputs
        """
     (n,d) = np.shape(D)
-    M = int(comb(d+P, d))
+    M = int(comb(d+Pd, d))
     storealpha = np.zeros((M-1,d))
     MultivariateLegendre = np.ones((n,M))
     
     if d == 1:
-        MultivariateLegendre = orthonormal_polynomial_legendre(P,D) 
-        storealpha = np.arange(0,P)[np.newaxis].T     
-        AnovaIndicators = np.ones((P,1))
-        Lambda = np.zeros((2,P))
+        MultivariateLegendre = orthonormal_polynomial_legendre(Pd,D) 
+        storealpha = np.arange(0,Pd)[np.newaxis].T     
+        AnovaIndicators = np.ones((Pd,1))
+        Lambda = np.zeros((2,Pd))
         Lambda[0,:] = 0
         Lambda[1,:] = storealpha.T
         return (MultivariateLegendre, storealpha, AnovaIndicators, Lambda)
     
     
-    if MaxIntOrder < 1 or MaxIntOrder > min(d,P):
-        MaxIntOrder = min(d,P)
+    if MaxIntOrder < 1 or MaxIntOrder > min(d,Pd):
+        MaxIntOrder = min(d,Pd)
     else:
         MaxIntOrder = round(MaxIntOrder)
         
     PolynomialEvals = []
     for j in range(d):
-        PolynomialEvals.append(orthonormal_polynomial_legendre(P,D[:,j]))
+        PolynomialEvals.append(orthonormal_polynomial_legendre(Pd,D[:,j]))
         MultivariateLegendre[:,0] = MultivariateLegendre[:,0] * PolynomialEvals[j][:,0]
     
     Nf = 2**d-1
@@ -60,7 +60,7 @@ def MultivariateLegendre(D, P, MaxIntOrder):
     for j in range(1,MaxIntOrder+1):
         Combinations = np.array(list(itertools.combinations(range(1,d+1), j))) # Compare to combnk() in Matlab it automatically be sorted. 
         No = Combinations.shape[0]  
-        alpha2 = np.array(list(itertools.combinations(range(1,P+1), j)))
+        alpha2 = np.array(list(itertools.combinations(range(1,Pd+1), j)))
         No2 = alpha2.shape[0]
         alpha = np.zeros((No2,j))
         alpha[:,0] = alpha2[:,0]
@@ -75,7 +75,7 @@ def MultivariateLegendre(D, P, MaxIntOrder):
                     MultivariateLegendre[:,t] = MultivariateLegendre[:,t] * PolynomialEvals[Combinations[k,i]-1][:,int(alpha[l,i])]
             
             r += 1
-            AnovaIndicators[r-1,Combinations[k,:]-1] = 1
+            AnovaIndicators[r-1, Combinations[k,:]-1] = 1
             u2 = u + No2    
             storealpha[u:u2, Combinations[k,:]-1] = alpha
             Lambda[0,u:u2] = r-1
@@ -95,7 +95,7 @@ def MultivariateLegendre(D, P, MaxIntOrder):
 
 """
 
-def MultivariateLegendre2(D, P, MaxIntOrder):
+def MultivariateLegendre2(D, Pd, MaxIntOrder):
     """
     Inputs:
        
@@ -103,23 +103,23 @@ def MultivariateLegendre2(D, P, MaxIntOrder):
     Outputs
     """
     (n,d) = np.shape(D)
-    M = int(comb(d+P, d))
+    M = int(comb(d+Pd, d))
     MultivariateLegendre2 = np.ones((n,M))
     
     if d == 1:
-        MultivariateLegendre2 = orthonormal_polynomial_legendre(P,D) 
+        MultivariateLegendre2 = orthonormal_polynomial_legendre(Pd,D) 
         
         return MultivariateLegendre2
     
     
-    if MaxIntOrder < 1 or MaxIntOrder > min(d,P):
-        MaxIntOrder = min(d,P)
+    if MaxIntOrder < 1 or MaxIntOrder > min(d,Pd):
+        MaxIntOrder = min(d,Pd)
     else:
         MaxIntOrder = round(MaxIntOrder)
         
     PolynomialEvals = []
     for j in range(d):
-        PolynomialEvals.append(orthonormal_polynomial_legendre(P,D[:,j]))
+        PolynomialEvals.append(orthonormal_polynomial_legendre(Pd,D[:,j]))
         MultivariateLegendre2[:,0] = MultivariateLegendre2[:,0] * PolynomialEvals[j][:,0]
     
    
@@ -128,7 +128,7 @@ def MultivariateLegendre2(D, P, MaxIntOrder):
     for j in range(1,MaxIntOrder+1):
         Combinations = np.array(list(itertools.combinations(range(1,d+1), j))) # Compare to combnk() in Matlab it automatically be sorted. 
         No = Combinations.shape[0]  
-        alpha2 = np.array(list(itertools.combinations(range(1,P+1), j)))
+        alpha2 = np.array(list(itertools.combinations(range(1,Pd+1), j)))
         No2 = alpha2.shape[0]
         alpha = np.zeros((No2,j))
         alpha[:,0] = alpha2[:,0]
@@ -153,7 +153,7 @@ def MultivariateLegendre2(D, P, MaxIntOrder):
 """   
         
         
-def orthonormal_polynomial_legendre(p,x):
+def orthonormal_polynomial_legendre(Pd,x):
     """
     Inputs:
         p is P: Max polinomial degree of orthonormal polynomial regressors
@@ -163,25 +163,25 @@ def orthonormal_polynomial_legendre(p,x):
         v: Orthonormal polynomial regressors    
     """
 
-    nn = np.arange(1,p+1)[np.newaxis].T
+    nn = np.arange(1,Pd+1)[np.newaxis].T
     b = np.append([1], (nn**2/((2*nn-1)*(2*nn+1)))[np.newaxis].T)[np.newaxis].T
     sqrtb = np.sqrt(b)
     
     n = x.shape[0] # Number of rows in x (e.g. if x=np.array([[1,2,3,4]] then, x.shape[0]=1, and x.shape[1]=4)
     
-    if p < 0:
+    if Pd < 0:
         v = []
         return v
           
-    v = np.zeros((n,p+1))
+    v = np.zeros((n,Pd+1))
     v[:,0] = 1 / sqrtb[0]
     
-    if p < 1:
+    if Pd < 1:
         return v
     
     v[:,1] = x * v[:,0] / sqrtb[1]
     
-    for i in range(1,p):
+    for i in range(1,Pd):
         v[:, i+1] = (x * v[:, i] - sqrtb[i] * v[:, i-1]) / sqrtb[i+1]
                
     return v    

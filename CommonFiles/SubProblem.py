@@ -6,30 +6,11 @@ Created on Wed Jul 31 17:04:47 2019
 """
 import numpy as np
 
-
-"""
-class Problem_Bab(BaseProblem):
-    """
-    Problem description
-    """
-    def __init__(self, 
-            
-            
-    )
-    
-    DataSets[objective][0] 
-    #Y[objective] 
-    P[objective]
-    md[objective] 
-    check3[objective] 
-    MaxIntOrder[objective] 
-    #iteration[objective] 
-    #
-"""
+from pyANOVAMOP.Metamodelling.SurrogatePrediction import SurrogatePrediction
 
 def SubProblem(SubProblemObjectiveIndices,
                SubProblemVariablesIndices,
-               Bounds,
+               #Bounds,
                lb,
                ub,
                FixedIndices,
@@ -42,7 +23,7 @@ def SubProblem(SubProblemObjectiveIndices,
                check3, #[objective] 
                MaxIntOrder #[objective] 
                #iteration[objective] 
-               ): 
+): 
     """
     
     Building a sub problem
@@ -60,7 +41,7 @@ def SubProblem(SubProblemObjectiveIndices,
         FixedValues,
         model
     """
-    NumObj = len(SubProblemObjectiveIndices) # e.g. 3
+    #NumObj = len(SubProblemObjectiveIndices) # e.g. 3
     NumVar = len(SubProblemVariablesIndices) # e.g. 3
     
     # Building sub-problem  (RVEA does not need this initial input)
@@ -85,10 +66,10 @@ def SubProblem(SubProblemObjectiveIndices,
                                           P[objective],
                                           md[objective], 
                                           check3[objective], 
-                                          MaxIntOrder[objective] 
+                                          MaxIntOrder[objective], 
                                           #iteration[objective]
-                                          ) 
-                      )
+                            ) 
+                     )
 
     
     return (Input, SubInput, Output)
@@ -132,27 +113,3 @@ def MapSamples(Samples,NewBounds,CurrentBounds):
 
 
 
-"""
-
-def SubProblem_objFun(x0,SubProblemObjectiveIndices,SubProblemVariablesIndices,FixedIndices,FixedValues,VariableBounds,model):
-    """
-    #x=x0
-    """
-    
-    numPop = x0.shape[0]
-    frange = VariableBounds[1,:] - VariableBounds[0,:] # ub - lb
-    np.delete(frange, FixedIndices,0) # remove a column FixedIndices
-    x0 = ((x0+1) * np.matlib.repmat(frange,numPop,1)) / 2 + np.matlib.repmat(VariableBounds[0,SubProblemVariablesIndices],numPop,1)
-    numVar = len(SubProblemVariablesIndices) #+len(FixedIndices)
-    x = np.zeros((numPop,numVar))
-    x[:,SubProblemVariablesIndices] = x0
-    x[:,FixedIndices] = FixedValues
-    numObj = len(SubProblemObjectiveIndices)
-    y = np.zeros(1,numObj)
-    cons = [] # check if it should not be a list
-    
-    for objective in range(numObj):
-        y[objective] = SurrogatePrediction(x,model(SubProblemObjectiveIndices[objective]))
-
-
-    return (y, cons)

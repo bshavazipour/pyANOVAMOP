@@ -17,7 +17,7 @@ from pyrvea.Problem.baseProblem import baseProblem
 from pyrvea.EAs.RVEA import RVEA
 from pyrvea.EAs.NSGAIII import NSGAIII
 
-from pyANOVAMOP.Metamodelling import SurrogatePrediction
+from pyANOVAMOP.Metamodelling.SurrogatePrediction import SurrogatePrediction
 
 import numpy as np
 
@@ -25,7 +25,38 @@ class ANOVAMOPtest1SubpSurrogate(baseProblem):
     """
       New problem description.
     """
-    global SubProblemObjectiveIndices, SubProblemVariablesIndices, P, md, check3, MaxIntOrder 
+    #global SubProblemObjectiveIndices, SubProblemVariablesIndices, P, md, check3, MaxIntOrder 
+    
+    def __init__(
+        self,
+        name=None,
+        num_of_variables=None,
+        num_of_objectives=None,
+        num_of_constraints=0,
+        upper_limits=1,
+        lower_limits=0,
+        SubProblemObjectiveIndices = [],
+        SubProblemVariablesIndices = [],
+        P = [],
+        md = [], 
+        check3 = [], 
+        MaxIntOrder = [],
+    ):    
+    
+        self.SubProblemObjectiveIndices,
+        self.SubProblemVariablesIndices,
+        self.P, 
+        self.md, 
+        self.check3, 
+        self.MaxIntOrder
+        super().__init__(
+            name,
+            num_of_variables,
+            num_of_objectives,
+            num_of_constraints,
+            upper_limits,
+            lower_limits,  
+        )
     
     def objectives(self, decision_variables) -> list:
         """Use this method to calculate objective functions.
@@ -38,18 +69,18 @@ class ANOVAMOPtest1SubpSurrogate(baseProblem):
         #NumObj = len(SubProblemObjectiveIndices) # e.g. 3
         #NumVar = len(SubProblemVariablesIndices) # e.g. 3
                
-        y = np.zeros(len(SubProblemObjectiveIndices))
+        y = np.zeros(len(self.SubProblemObjectiveIndices))
         i = 0
     
-        for objective in SubProblemObjectiveIndices: # range(NumObj) 
+        for objective in self.SubProblemObjectiveIndices: # range(NumObj) 
             y[i] = float(SurrogatePrediction(np.matrix(x), 
                                          #SurrogateDataInfo[objective][0]
                                          #DataSets[objective][0] 
                                          #Y[objective] 
-                                         P[objective],
-                                         md[objective], 
-                                         check3[objective], 
-                                         MaxIntOrder[objective] 
+                                         self.P[objective],
+                                         self.md[objective], 
+                                         self.check3[objective], 
+                                         self.MaxIntOrder[objective] 
                                          #iteration[objective]
                                          ) 
                       )
@@ -58,27 +89,5 @@ class ANOVAMOPtest1SubpSurrogate(baseProblem):
                 
         return y #objective_values
   
-name = "ANOVAMOPtest1SubpSurrogate"
-#k = 10
-numobj = len(SubProblemObjectiveIndices)
-numconst = 0
-numvar = len(SubProblemVariablesIndices)
-
-problem = ANOVAMOPtest1SubpSurrogate(name, numvar, numobj, numconst, )
-
-lattice_resolution = 4
-population_size = 105
-
-pop = Population(problem)
-
-# You can choose the solver from RVEA and NSGAIII
-pop.evolve(NSGAIII)
-
-pop.non_dominated()
-
-refpoint = 2
-volume = 2 ** numobj
-#print(pop.hypervolume(refpoint) / volume)
-
 
 

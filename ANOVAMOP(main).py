@@ -21,16 +21,30 @@ from numpy import linalg as LA
 from scipy.optimize import fsolve
 from scipy.optimize import minimize
 
-from pyANOVAMOP.CommonFiles import BuildMdelta
+from pyANOVAMOP.CommonFiles.BuildMdelta import BuildMdelta
 from pyANOVAMOP.CommonFiles.Cartesian_product import Cartesian_Product
-from pyANOVAMOP.CommonFiles import MyFun
-from pyANOVAMOP.CommonFiles import P_objective
-from pyANOVAMOP.CommonFiles import SubProblem
-from pyANOVAMOP.Decision.making.ASF2 import ASF
-from pyANOVAMOP.Decomposition import CheckDecomposibility
-from pyANOVAMOP.Decomposition import connectedComponents
-from pyANOVAMOP.Metamodelling import BPCfunction
+#from pyANOVAMOP.CommonFiles import MyFun
+#from pyANOVAMOP.CommonFiles import P_objective
+from pyANOVAMOP.CommonFiles.SubProblem import SubProblem
+from pyANOVAMOP.DecisionMaking.ASF2 import ASF
+from pyANOVAMOP.DecisionMaking.MakeDecision import MakeDecision
+from pyANOVAMOP.Decomposition.CheckDecomposability import CheckDecomposability
+from pyANOVAMOP.Decomposition.CheckDecomposability import SubProblems
+#from pyANOVAMOP.Decomposition import connectedComponents
+from pyANOVAMOP.Metamodelling.BPCfunction import BPC
+from pyANOVAMOP.Metamodelling.SurrogatePrediction import SurrogatePrediction
 
+
+from pyANOVAMOP import ANOVAMOPtest1SubpSurrogate
+
+from pyrvea.Population.Population import Population
+from pyrvea.Problem.baseProblem import baseProblem
+from pyrvea.EAs.RVEA import RVEA
+from pyrvea.EAs.NSGAIII import NSGAIII
+
+
+from pyANOVAMOP.CommonFiles.P_objective import P_objective
+from pyANOVAMOP.CommonFiles.P_objective import P_objective2
 
 """
 Initialization>
@@ -40,7 +54,9 @@ Input: Let f : [0, 1]^d → R^k be a black box vector function in (1).
 d=5 #Number of variables
 k=5 #Number of objective functons
 
-ProbName='ALBERTO'# Problem's name defined in P_objective.py
+# Problem's name defined in P_objective.py --> 
+#If you have a new problem, all you need to do is to define it in P_objective.py as a new function and replace its name here by 'P_objective' + import it in ANOVAMOP(main) and MyFun.py as: from pyANOVAMOP.CommonFiles.P_objective import your_function_name .
+ProblemName = P_objective
 
 
 DM = 1# 0 means non-interactive setting and 1 means interactive setting
@@ -91,11 +107,11 @@ iteration = [[None] for i in range(k)] # Generate an empty 2D k*d list of lists,
 
 for objective in range(k):
     print(objective)
-    SurrogateDataInfo[objective][0] = BPC(ProbName,objective,k,lb,ub,10000)   
+    SurrogateDataInfo[objective][0] = BPC(objective,lb,ub,10000,ProblemName,d,k)   
     TotalSenIndMatrix[objective][:] = SurrogateDataInfo[objective][0].TotalIndices[:,1] #.T
     DataSets[objective][0] = SurrogateDataInfo[objective][0].D #
     Y[objective] = SurrogateDataInfo[objective][0].Y
-    P[objective] = SurrogateDataInfo[objective][0].P
+    P[objective] = SurrogateDataInfo[objective][0].Pd
     md[objective] = SurrogateDataInfo[objective][0].md #
     check3[objective] = SurrogateDataInfo[objective][0].check3
     MaxIntOrder[objective] = SurrogateDataInfo[objective][0].MaxIntOrder
@@ -264,7 +280,10 @@ if Decomposable: # 15: If Mδ is decomposable
      
     fdelta = SubProblems(k, d, cc)
     
-    
+    PO =  [[None] for i in range(k)]   # Pareto optimal set for the original problem with k objectives and d variables
+    FO =  [[None] for i in range(k)]   # Pareto optimal frontier for the original problem with k objectives and d variables
+    p1m =  [[None] for i in range(k)]   # # p1m = p1 ... pm  (SubProblemsDecisionSpacePareto) 
+    f1m =  [[None] for i in range(k)]   # f1m = f1 ... fm  (SubProblemsObjectiveSpacePareto)
     """
     17: Solve subproblems separately by calling the solver and get Pareto optimal sets p1, p2, ..., pm
     
@@ -295,10 +314,9 @@ if Decomposable: # 15: If Mδ is decomposable
                 Bounds = VariableBounds[:,SubProblemVariablesIndices.astype(int)]
                 FixedValues = VariableBounds[:,FixedIndices].mean(axis=0)
             
-                #solve the subproblem and get the solutions [x,f]
                 Input, SubInput, Output = SubProblem(SubProblemObjectiveIndices,
                                                       SubProblemVariablesIndices,
-                                                      Bounds,
+                                                      #Bounds,
                                                       lb,
                                                       ub,
                                                       FixedIndices,
@@ -309,18 +327,70 @@ if Decomposable: # 15: If Mδ is decomposable
                                                       P,#[objective]
                                                       md,#[objective] 
                                                       check3,#[objective] 
-                                                      MaxIntOrder#[objective] 
+                                                      MaxIntOrder, #[objective] 
                                                       #iteration[objective] 
-                                                      )
+                                            )
     
     
-                random.choice(Input)
                 
-                [xParetoTemp, fParetoTemp] = 
-                        
-                p1m[SubProbInd] = xParetoTemp # p1m = p1 ... pm  (SubProblemsDecisionSpacePareto)
-                f1m[SubProbInd] = fParetoTemp   # f1m = f1 ... fm  (SubProblemsObjectiveSpacePareto)   
-         
+                #Solving subproblem and get its solutions [x,f] as p1m[SubProbInd] and f1m[SubProbInd]
+                
+                ANOVAMOPtest1SubpSurrogate.SubProblemObjectiveIndices = SubProblemObjectiveIndices,
+                ANOVAMOPtest1SubpSurrogate.SubProblemVariablesIndices = SubProblemVariablesIndices,
+                ANOVAMOPtest1SubpSurrogate.P = P,
+                ANOVAMOPtest1SubpSurrogate.md = md, 
+                ANOVAMOPtest1SubpSurrogate.check3 = check3, 
+                ANOVAMOPtest1SubpSurrogate.MaxIntOrder = MaxIntOrder,
+                
+                # Check if we also need to send Input, as the initial sample, to the solver
+                
+                name = "ANOVAMOPtest1SubpSurrogate"
+                #k = 10
+                numobj = len(ANOVAMOPtest1SubpSurrogate.SubProblemObjectiveIndices)
+                numconst = 0
+                numvar = len(ANOVAMOPtest1SubpSurrogate.SubProblemVariablesIndices)
+
+                problem = ANOVAMOPtest1SubpSurrogate(name, numvar, numobj, numconst, )
+
+                lattice_resolution = 4
+                population_size = 105
+
+                pop = Population(problem)
+
+                # You can choose the solver (RVEA or NSGAIII)
+                pop.evolve(NSGAIII)
+
+                xParetoTemp = pop.non_dominated()
+
+                #refpoint = 2
+                #volume = 2 ** numobj
+                #print(pop.hypervolume(refpoint) / volume)
+                
+                fOptApp = np.zeros(len(SubProblemObjectiveIndices))
+                #fOptApp = [] #if send the wole data set, then use .append within the for loop below
+                i = 0 # only works for one sample, 
+                for objective in SubProblemObjectiveIndices: #len(ObjIndices) 
+                    fOptApp[i] = float(SurrogatePrediction(np.matrix(xParetoTemp),
+                                                           #SurrogateDataInfo[SubProblemObjectiveIndices[Objective]]
+                                                           #model: # model stored as Data includes e.g. md, check3, P, MaxIntOrder
+                                                           #DataSets[objective][0], 
+                                                           #Y[objective] 
+                                                           P[objective],
+                                                           md[objective], 
+                                                           check3[objective], 
+                                                           MaxIntOrder[objective] 
+                                                           #iteration[objective]
+                                                           )
+                           )
+                    
+                    
+                    i += 1
+        
+                ?    p1m[0][objective] = xParetoTemp[objective] # p1m = p1 ... pm  (SubProblemsDecisionSpacePareto)
+                ?    f1m[0][objective] = fOptApp[i]   # f1m = f1 ... fm  (SubProblemsObjectiveSpacePareto)   
+                #FinalSolutionDecisionSpace[0][SubProblemVariablesIndices.astype(int)] = xOptApp[SubProblemVariablesIndices.astype(int)] # p1m =
+                #FinalSolutionObjectiveSpace[0][SubProblemVariablesIndices.astype(int)] = fOptApp  # f1m =
+                
             
             
             
@@ -333,8 +403,8 @@ if Decomposable: # 15: If Mδ is decomposable
             -----------------------------"""
 
     else:  # ANOVAMOP as an interactive method
-        FinalSolutionDecisionSpace = np.zeros((1,d))  #P
-        FinalSolutionObjectiveSpace = np.zeros((1,k)) #F
+        FinalSolutionDecisionSpace = np.zeros((1,d))  # if it returns only one solution then it would be the final solution,otherwise it is one of the solution in set p1m
+        FinalSolutionObjectiveSpace = np.zeros((1,k)) #f1m
         
         for SubProbInd in range(NumberSubProblems):
             VariableBounds = np.vstack((lb,ub))
@@ -352,7 +422,7 @@ if Decomposable: # 15: If Mδ is decomposable
             
             Input, SubInput, Output = SubProblem(SubProblemObjectiveIndices,
                                        SubProblemVariablesIndices,
-                                       Bounds,
+                                       #Bounds,
                                        lb,
                                        ub,
                                        FixedIndices,
@@ -372,46 +442,41 @@ if Decomposable: # 15: If Mδ is decomposable
             # Ask the DM to set relevant aspiration levels
             while DoInteraction:
                 print("Indices of objective functions of subproblem #", str(SubProbInd+1), " are ", str(np.matrix(SubProblemObjectiveIndices)+1), ".")
-                print('Enter a referenc point as a vector 1 *', str(len(SubProblemObjectiveIndices)), ' for these objectives ')  #in a list like [0, 0, ..., 0]
-                z = input('') # Reference points provided by the DM
-                
-                if len(z) != len(SubProblemObjectiveIndices): # needs modification in Input()
-                    print('The reference point must have a dimension 1 *', str(len(SubProblemObjectiveIndices)), '.')
+                #print('Enter a referenc point as a vector 1 *', str(len(SubProblemObjectiveIndices)), ' for these objectives ')  #in a list like [0, 0, ..., 0]
+                z = []
+                for obj in SubProblemObjectiveIndices:
+                    print("Please input a value as your preference for objective ", obj + 1)
+                    z.append(float(input())) # Reference points provided by the DM
+                                             
+                """
+                Solve the subproblem and get the solutions [x,f],
+                Show solutions to the DM and,
+                Ask to change the reference points if (s)he is not happy with this solution 
+                """
+                xOptApp, fOptApp = MakeDecision(z, # z must be a list like [0,0,...,0]
+                                                #fdelta[SubProbInd], # related to current sub-problem
+                                                #SurrogateDataInfo,
+                                                #DataSets,#[objective][0] 
+                                                #Y[objective] 
+                                                P,#[objective]
+                                                md,#[objective] 
+                                                check3,#[objective] 
+                                                MaxIntOrder,#[objective] 
+                                                #iteration[objective]
+                                                SubProblemObjectiveIndices,
+                                                #VariableBounds,
+                                                Input
+                                                )
                     
-                #elif type(z) != list:
-                #    print('The reference point must be a list like [0, 0, ..., 0].')
+                print("Given reference point = ", z, ", and ")
+                print("corresponding prefered solution in the objecive space = [", str(fOptApp), "].")
                 
-                                       
-                else:
-                                            
-                    """
-                    Solve the subproblem and get the solutions [x,f],
-                    Show solutions to the DM and,
-                    Ask to change the reference points if (s)he is not happy with this solution 
-                    """
-                    xOptApp, fOptApp = MakeDecision(z, # z must be a list like [0,0,...,0]
-                                                    #fdelta[SubProbInd], # related to current sub-problem
-                                                    #SurrogateDataInfo,
-                                                    #DataSets,#[objective][0] 
-                                                    #Y[objective] 
-                                                    P,#[objective]
-                                                    md,#[objective] 
-                                                    check3,#[objective] 
-                                                    MaxIntOrder,#[objective] 
-                                                    #iteration[objective]
-                                                    SubProblemObjectiveIndices,
-                                                    #VariableBounds,
-                                                    Input
-                                                    )
-                    
-                    print("Given reference point = [", str(z), "], and ")
-                    print("corresponding prefered solution in the objecive space = [", str(fOptApp), "].")
-                    Tag = input('Would you like to provide another reference point? (Yes = 1 / No = 0) ')
-                        
-                    if Tag == 0:
-                        DoInteraction = 0
-                        FinalSolutionDecisionSpace[SubProblemVariablesIndices] = xOptApp[SubProblemVariablesIndices]
-                        FinalSolutionObjectiveSpace[SubProblemObjectiveIndices] = fOptApp
+                Tag = int(input('Would you like to provide another reference point? (Yes = 1 / No = 0) '))
+                   
+                if Tag == 0:
+                    DoInteraction = 0
+                    FinalSolutionDecisionSpace[0][SubProblemVariablesIndices.astype(int)] = xOptApp[SubProblemVariablesIndices.astype(int)] # p1m =
+                    FinalSolutionObjectiveSpace[0][SubProblemVariablesIndices.astype(int)] = fOptApp  # f1m =
                 
                             
                             
@@ -421,34 +486,185 @@ if Decomposable: # 15: If Mδ is decomposable
             #print('          [' num2str(FinalSolutionObjectiveSpace) ']')
             #print('The final solution in the decision space is')
             #print('          [' num2str(FinalSolutionDecisionSpace) ']')
-
-    
+            
+                       
+                
     
     """
     18: Generate the Pareto optimal set & Pareto frontier for the original problem
     
       if p1m is a list of lists includes p1, p2, ..., pm are the Pareto sets of the subproblems; repectively.
     """
-    P = Cartesian_Product_of_m(p1m) # Pareto optimal set for the original problem
+    PO = Cartesian_Product_of_m(p1m) # Pareto optimal set for the original problem
     # Similarly, if f1m is a list of lists includes f1, f2, ..., fm are the Pareto frontier approximations of the subproblems; repectively.
-    F = Cartesian_Product_of_m(f1m) # Pareto optimal frontier for the original problem
+    FO = Cartesian_Product_of_m(f1m) # Pareto optimal frontier for the original problem
     
 elif Reducible:
     # Remove the column of zero from the Mδ
     ReducedMdelta = np.delete(Mdelta,np.where(~Mdelta.any(axis=0))[0], axis=1) #remove the columns that contain only 0
-    RemovedColumn = np.where(~Mdelta.any(axis=0))[0] + 1 # Shows the number of column which is removed
-    print("The variable which had no effect is x_", int(RemovedColumn))
+    RemovedColumns = np.where(~Mdelta.any(axis=0))[0]  # Shows the number of columns which are removed   # = FixedIndices
+    print("The variable(s) which had no effect is(are) x_", RemovedColumns + 1)
     
     #(20) solve the reduced problem and return P and F
-    -built the new sub problem
-    -solve it and get P and F
+    # Building the reduced problem
     
-    P =     # Pareto optimal set for the original problem
-    F =     # Pareto optimal frontier for the original problem
+    # Reduced problem has the same objectives as the original problem
+    ReducedProblemObjectiveIndices = np.arange(0,k) # SubProblemObjectiveIndices,
+               
+    # But, the number of variables is fewer than the original problem -> remove the inactive variable (column)
+    ReducedProblemVariablesIndices = np.setdiff1d(VariableIndices, RemovedColumns) # SubProblemVariablesIndices,
     
+    VariableBounds = np.vstack((lb,ub))
+    
+    #Bounds = VariableBounds[:,RemainVariableIndices.astype(int)]
+    
+    InactiveValues = VariableBounds[:,RemovedColumns].mean(axis=0) #FixedValues
+    VariableBounds[:,RemovedColumns] = np.matlib.repmat(InactiveValues,2,1) # check if 2 is a correct number
+    
+    Input, SubInput, Output = SubProblem(ReducedProblemObjectiveIndices,
+                                         ReducedProblemVariablesIndices,
+                                         #Bounds,
+                                         lb,
+                                         ub,
+                                         RemovedColumns,
+                                         InactiveValues,
+                                         #model  # model = SurrogateDataInfo has all info about the all objectives returend from the BPC; SurrogateDataInfo[i] has the info of the i-th objectives, e.g. SurrogateDataInfo[i].md  
+                                         DataSets,#[objective][0] 
+                                         #Y[objective] 
+                                         P, #[objective]
+                                         md, #[objective] 
+                                         check3, #[objective] 
+                                         MaxIntOrder #[objective] 
+                                         #iteration[objective] 
+                                       )
+    
+    #Solve it and get P and F
+    
+    if ~DM: #Solving subproblem in a non-interactive way (by RVEA or NSGAIII) and get its solutions [x,f] as p1m[SubProbInd] and f1m[SubProbInd]
+                
+        ANOVAMOPtest1SubpSurrogate.SubProblemObjectiveIndices = ReducedProblemObjectiveIndices,
+        ANOVAMOPtest1SubpSurrogate.SubProblemVariablesIndices = ReducedProblemVariablesIndices,
+        ANOVAMOPtest1SubpSurrogate.P = P,
+        ANOVAMOPtest1SubpSurrogate.md = md, 
+        ANOVAMOPtest1SubpSurrogate.check3 = check3, 
+        ANOVAMOPtest1SubpSurrogate.MaxIntOrder = MaxIntOrder,
+    
+        # Check if we also need to send Input, as the initial sample, to the solver
+                
+        name = "ANOVAMOPtest1SubpSurrogate"
+        #k = 10
+        numobj = len(ANOVAMOPtest1SubpSurrogate.SubProblemObjectiveIndices)
+        numconst = 0
+        numvar = len(ANOVAMOPtest1SubpSurrogate.SubProblemVariablesIndices)
+
+        problem = ANOVAMOPtest1SubpSurrogate(name, numvar, numobj, numconst, )
+
+        lattice_resolution = 4
+        population_size = 105
+
+        pop = Population(problem)
+
+        # You can choose the solver (RVEA or NSGAIII)
+        pop.evolve(NSGAIII)
+
+                 
+        xParetoTemp = pop.non_dominated()
+
+        #refpoint = 2
+        #volume = 2 ** numobj
+        #print(pop.hypervolume(refpoint) / volume)
+                
+        fOptApp = np.zeros(len(SubProblemObjectiveIndices))
+        #fOptApp = [] if send the wole data set, then use .append within the for loop below
+        i = 0 # only works for one sample, 
+        for objective in SubProblemObjectiveIndices: #len(ObjIndices) 
+            fOptApp[i] = float(SurrogatePrediction(np.matrix(xParetoTemp),
+                                                   #SurrogateDataInfo[SubProblemObjectiveIndices[Objective]]
+                                                   #model: # model stored as Data includes e.g. md, check3, P, MaxIntOrder
+                                                   #DataSets[objective][0], 
+                                                   #Y[objective] 
+                                                   P[objective],
+                                                   md[objective], 
+                                                   check3[objective], 
+                                                   MaxIntOrder[objective] 
+                                                   #iteration[objective]
+                                                   )
+                           )
+                    
+                    
+            i += 1
+
+                
+                        
+        ?  p1m[objective] = xParetoTemp[objective] # p1m = p1 ... pm  (SubProblemsDecisionSpacePareto)
+        ?  f1m[objective] = fOptApp[i]   # f1m = f1 ... fm  (SubProblemsObjectiveSpacePareto)  
+        
+        #PO =  [[None] for i in range(k)]   # Pareto optimal set for the original problem with k objectives and d variables
+        #FO =  [[None] for i in range(k)]   # Pareto optimal frontier for the original problem with k objectives and d variables
+    
+        [PO, FO] = 
+        
+        
+    else:  # ANOVAMOP as an interactive method
+    
+    
+        DoInteraction = 1
+        # Ask the DM to set relevant aspiration levels
+        while DoInteraction:
+            print("Indices of objective functions of subproblem #", str(SubProbInd+1), " are ", str(np.matrix(SubProblemObjectiveIndices)+1), ".")
+            #print('Enter a referenc point as a vector 1 *', str(len(SubProblemObjectiveIndices)), ' for these objectives ')  #in a list like [0, 0, ..., 0]
+            z = []
+            for obj in SubProblemObjectiveIndices:
+                print("Please input a value as your preference for objective ", obj + 1)
+                z.append(float(input())) # Reference points provided by the DM
+                                             
+            """
+            Solve the subproblem and get the solutions [x,f],
+            Show solutions to the DM and,
+            Ask to change the reference points if (s)he is not happy with this solution 
+            """
+            xOptApp, fOptApp = MakeDecision(z, # z must be a list like [0,0,...,0]
+                                            #fdelta[SubProbInd], # related to current sub-problem
+                                            #SurrogateDataInfo,
+                                            #DataSets,#[objective][0] 
+                                            #Y[objective] 
+                                            P,#[objective]
+                                            md,#[objective] 
+                                            check3,#[objective] 
+                                            MaxIntOrder,#[objective] 
+                                            #iteration[objective]
+                                            SubProblemObjectiveIndices,
+                                            #VariableBounds,
+                                            Input
+                                            )
+                    
+            print("Given reference point = ", z, ", and ")
+            print("corresponding prefered solution in the objecive space = [", str(fOptApp), "].")
+                
+            Tag = int(input('Would you like to provide another reference point? (Yes = 1 / No = 0) '))
+                   
+            if Tag == 0:
+                DoInteraction = 0
+                FinalSolutionDecisionSpace[0][SubProblemVariablesIndices.astype(int)] = xOptApp[SubProblemVariablesIndices.astype(int)] # p1m =
+                FinalSolutionObjectiveSpace[0][SubProblemVariablesIndices.astype(int)] = fOptApp  # f1m =
+                
+                            
+                            
+        #save FinalSolutionDecisionSpace FinalSolutionDecisionSpace
+        #save FinalSolutionObjectiveSpace FinalSolutionObjectiveSpace
+        #print('The final solution in the objective space is')
+        #print('          [' num2str(FinalSolutionObjectiveSpace) ']')
+        #print('The final solution in the decision space is')
+        #print('          [' num2str(FinalSolutionDecisionSpace) ']')
+            
+        PO = FinalSolutionDecisionSpace
+        FO = FinalSolutionObjectiveSpace
+
+    
+        
 else: # (21) if Δ is empthy
-    P = []
-    F = []
+    PO = []
+    FO = []
     print("There are some common variables between subproblems, then the ANOVA-MOP cannot solve such problems.")
 
 
@@ -465,104 +681,51 @@ f^ℓ (x^(ν)) − fδ^ℓ (x(ν)) |
  
 """
 # Select randomly a validation sample V := {x^(1), . . . , x^(v)}	 ⊆ P
-V = random.choices(P,k=random.randint(1,len(P)))
+V = random.choices(PO,k=random.randint(1,len(PO)))
 
 # Estimate the approximation quality eps of the solutions found
 #for v in V:
 #    max(max(abs(fl(xv) − fδl(xv))))
-eps = LA.norm(F(xv) − Fδ(xv), ord=np.inf)
+# F(xv) calculted from original function
+#Fopt = [[] for i in range(len(V))]
 
-"""
-25: return  (P , F , V, eps).  
-"""
-#return  (P , F , V, eps)
+Fopt = ProblemName(np.matrix(V),k)
 
+# Fδ(xv) calculated from Surrogate_Prediction models -> Pred
 
-
-
-
-
-
-"""
-
-"""
-
-def MakeDecision(z,
-                 #DecomposedModel, # fdelta[SubProbInd]
-                 #SurrogateDataInfo,
-                 #DataSets,#[objective][0] 
-                 #Y[objective] 
-                 P,#[objective]
-                 md,#[objective] 
-                 check3,#[objective] 
-                 MaxIntOrder,#[objective] 
-                 #iteration[objective]
-                 ObjIndices, #SubProblemObjectiveIndices,
-                 #DecomposedBounds #VariableBounds
-                 Input
-                 ):
-    """
-     
-    # Initialization for DIRECT method
-    opts.es = 1e-4
-    opts.maxevals = 500
-    opts.maxits = 500
-    opts.maxdeep = 1000
-    opts.testflag = 0
-    opts.showits = 0
+FoptDelta = [[] for i in range(len(V))]  
     
-    
-        
-     
-    #call an optimizer e.g. minimize or fsolve
-    
-    # ASF will be called within the optimizer
-    #Problem.f ='ASF' # objective function from ASF
+for v in range(len(V)):
+    for objective in range(k):
+        FoptDelta[v].append(float(SurrogatePrediction(np.matrix(V[v]), 
+                                                      P[objective],
+                                                      md[objective], 
+                                                      check3[objective], 
+                                                      MaxIntOrder[objective] 
+                                                      ) 
+                                  ) 
+                            )
    
-    
-    # Solve the single objective optimizer to Min ASF(X,Z) of the (sub-)problem and get the solution
-    #[~, xOptApp] = Direct(Problem,VariableBounds',opts,StrucData)
-    """
-    
-    xOptApp = minimize(ASF, 
-                       random.choice(Input), # 
-                       args=(#model  # model = SurrogateDataInfo has all info about the all objectives returend from the BPC; SurrogateDataInfo[i] has the info of the i-th objectives, e.g. SurrogateDataInfo[i].md  
-                           #DataSets[0][0][0], 
-                           #Y[objective] 
-                           P,#[objective]
-                           md,#[objective] 
-                           check3,#[objective] 
-                           MaxIntOrder,#[objective] 
-                           #iteration[objective] 
-                           ObjIndices, #SubProblemObjectiveIndices,
-                           #DecomposedBounds,  #VariableBounds
-                           z
-                           )
-                     )
-                         
-    #xOptApp = xOptApp.T
-    
-    
-    # Function evluations with new solution
-    fOptApp = np.zeros(len(ObjIndices))
-    #fOptApp = []
-    i = 0
-    for objective in ObjIndices: #len(ObjIndices) 
-        fOptApp[i] = float(SurrogatePrediction(np.matrix(xOptApp.x),
-                                               #SurrogateDataInfo[SubProblemObjectiveIndices[Objective]]
-                                               #model: # model stored as Data includes e.g. md, check3, P, MaxIntOrder
-                                               #DataSets[objective][0], 
-                                               #Y[objective] 
-                                               P[objective],
-                                               md[objective], 
-                                               check3[objective], 
-                                               MaxIntOrder[objective], 
-                                               #iteration[objective]
-                                               )
-                           )
-        i += 1
         
-    return (xOptApp.x, fOptApp)
+# Estimate
+eps = (abs(Fopt - np.matrix(FoptDelta))).max() # max max |-|
+#eps = LA.norm(Fopt - np.matrix(FoptDelta), 2)
+"""
+25: return  (PO , FO , V, eps).  
+"""
+
+print("Pareto optimal set for the original problem is equal to:", PO)
+print("Pareto optimal frontier for the original problem is equal to:", FO)
+print(V)
+print(eps)
+
+#return  (PO , FO , V, eps)
+
+
+
+
+
+
 
 
 

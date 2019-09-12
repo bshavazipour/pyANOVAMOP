@@ -6,7 +6,7 @@ Created on Tue May 14 16:50:02 2019
 """
 
 import numpy as np
-from pyANOVAMOP.Metamodelling import MultivariateLegendre2 #, MultivariateLegendre # ,orthonormal_polynomial_legendre,
+from pyANOVAMOP.Metamodelling.MultivariateLegendre2 import MultivariateLegendre2 #, MultivariateLegendre # ,orthonormal_polynomial_legendre,
 
 
 def SurrogatePrediction(x00, 
@@ -16,9 +16,9 @@ def SurrogatePrediction(x00,
                         P,#[objective],
                         md,#[objective], 
                         check3,#[objective], 
-                        MaxIntOrder,#[objective], 
+                        MaxIntOrder #[objective], 
                         #iteration[objective]
-                        ):
+):
     """
     Estimate the objective functions for the given solution x0
     """

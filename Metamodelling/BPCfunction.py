@@ -10,7 +10,6 @@ Created on Fri Jul 26 14:10:29 2019
 BPC as a function
 
 """
-
 import numpy as np
 #import pandas as pd
 import itertools
@@ -20,10 +19,10 @@ import math
 
 from scipy.spatial.distance import cdist  # To calculatr thr euclidean distance between tow sets of observations in a matrix form
 from pyANOVAMOP.Metamodelling.ScrambledSobolSequence import scrambled_sobol # scramble,
-from pyANOVAMOP.Metamodelling import MultivariateLegendre2, MultivariateLegendre # ,orthonormal_polynomial_legendre,
+from pyANOVAMOP.Metamodelling.MultivariateLegendre import MultivariateLegendre2, MultivariateLegendre # ,orthonormal_polynomial_legendre,
 from pyANOVAMOP.Metamodelling.Some_required_functions_for_BPCmain import Pred, Search, invandlogdet #, calculatem2lprob, calculatem2lprob2, 
 from pyANOVAMOP.Metamodelling.Some_required_functions_for_BPCmain import SimulateSobolIndices #, CheckIfPosDef, CdfDev, CDFEst, PiecewiseLinearCDF, ecdf
-from pyANOVAMOP.CommonFiles import MyFun
+from pyANOVAMOP.CommonFiles.MyFun import MyFun
 
 #from scipy.sparse import eye
 
@@ -39,10 +38,10 @@ class Data(object):
     """
     To save data from BPC
     """
-    def __init__(self, D, Y, P, md, check3, MaxIntOrder, iteration, TotalIndices):
+    def __init__(self, D, Y, Pd, md, check3, MaxIntOrder, iteration, TotalIndices):
         self.D = D
         self.Y = Y
-        self.P = P
+        self.Pd = Pd
         self.md = md
         self.check3 = check3
         self.MaxIntOrder = MaxIntOrder
@@ -52,24 +51,21 @@ class Data(object):
 #-----------------------------------------------------
   
 
-def BPC(ProbName,ObjInd,ObjNum,lb,ub,MaxNumFunEval):
+def BPC(ObjInd,lb,ub,MaxNumFunEval, ProblemName,d,k):
     """
-    
+    description
     
     """
-    
-    
-    
-    
+          
     """
     Initial assignments
     """
 
     #Dimension of problem (Number of variables)
-    d = 5
-    k = 5 # Number of objectives
+    #d = 5
+    #k = ObjNum # Number of objectives
     #Maximum polynomial degree of orthonormal polynomial regressors
-    P = 5
+    Pd = 5
     #Maximum order of ANOVA functional components to allow in regression
     MaxIntOrder = d
 
@@ -109,7 +105,7 @@ def BPC(ProbName,ObjInd,ObjNum,lb,ub,MaxNumFunEval):
     """
      1. First stage in the algorithm
  
-       ' Set value of P ' # Already set
+       ' Set value of Pd ' # Already set
        ' Generate initial design of size n=n0 from scrambled Sobol sequence.' 
        #Low discrepancy quasi-random sequences, e.g. Sobol sequences, fill a space more uniformly than uniformly random sequences.
        ' Set k=0. '
@@ -132,8 +128,9 @@ def BPC(ProbName,ObjInd,ObjNum,lb,ub,MaxNumFunEval):
      2. Run experiment: evaluate function at all points in design. i.e. find Y = f(X); for all samples in D
  
     """
+    
 
-    Y = MyFun(D,lb,ub,ProbName,ObjInd,k)
+    Y = MyFun(D,lb,ub,ObjInd,ProblemName,k) # ProblemName must be P_objective or P_objective2
 
     # Example 1. p159  - Ishigami function (test problem)
     #Y = np.sin(np.pi*(D[:,0]+1)-np.pi) + 7*(np.sin(np.pi*(D[:,1]+1)-np.pi))**2 + 0.1*(np.pi*(D[:,2]+1)-np.pi)**4 * np.sin(np.pi*(D[:,0]+1)-np.pi)
@@ -142,7 +139,7 @@ def BPC(ProbName,ObjInd,ObjNum,lb,ub,MaxNumFunEval):
      3.1. Generate regressors
     """
     # Generate regressors
-    (X, alpha, AnovaIndicators, Lambda) = MultivariateLegendre(D, P, MaxIntOrder)
+    (X, alpha, AnovaIndicators, Lambda) = MultivariateLegendre(D, Pd, MaxIntOrder)
     Nf = AnovaIndicators.shape[0]
     M = X.shape[1]
     M2 = M-1
@@ -150,7 +147,7 @@ def BPC(ProbName,ObjInd,ObjNum,lb,ub,MaxNumFunEval):
     #Interaction order and number of levels for each component of delta
  
     E = np.array([sum(row) for row in AnovaIndicators]).T
-    F = P - E + 2
+    F = Pd - E + 2
 
     #Number of Sobol indices to compute
     NI = sum(E <= truncate)
@@ -158,10 +155,10 @@ def BPC(ProbName,ObjInd,ObjNum,lb,ub,MaxNumFunEval):
     """
     3.2. Starting models for global search
     """
-    if d > 1 and P > 5:   # eq. 27 p 157
+    if d > 1 and Pd > 5:   # eq. 27 p 157
         NoStart0 = 2 ** d - 1 + 2 ** d -1 - d
         deltastart0 = np.zeros((NoStart0, Nf))
-        deltastart0[0:d,0:d] = P * np.identity(d)
+        deltastart0[0:d,0:d] = Pd * np.identity(d)
         No = d
         for i in range(2,d+1):
             Factors = np.array(list(itertools.combinations(range(1,d+1), i))) # This matrix provide different order of rows for some indices compared to the Matlab code -> check if it needs to be the same as the Matlab code
@@ -171,14 +168,14 @@ def BPC(ProbName,ObjInd,ObjNum,lb,ub,MaxNumFunEval):
             for j in range(NoFactors):
                 Include = np.logical_and(((E - np.array([sum(row) for row in AnovaIndicators[:,Factors[j,:]-1]])) == 0), (E <= 2))
                 No += 1
-                deltastart0[No-1,Include] = P
+                deltastart0[No-1,Include] = Pd
                 No += 1
                 deltastart0[No-1,Include] = 2
 
-    elif d > 1 and P <= 5:  # eq. 27 and 28 - p 157-158
+    elif d > 1 and Pd <= 5:  # eq. 27 and 28 - p 157-158
         NoStart0 = 2 ** d - 1 
         deltastart0 = np.zeros((NoStart0, Nf))
-        deltastart0[0:d,0:d] = P * np.identity(d)
+        deltastart0[0:d,0:d] = Pd * np.identity(d)
         No = d
         for i in range(2,d+1):
             Factors = np.array(list(itertools.combinations(range(1,d+1), i)))
@@ -187,11 +184,11 @@ def BPC(ProbName,ObjInd,ObjNum,lb,ub,MaxNumFunEval):
             for j in range(NoFactors):
                 Include = np.logical_and(((E-np.array([sum(row) for row in AnovaIndicators[:,Factors[j,:]-1]]).T) == 0), (E <= 2))
                 No += 1
-                deltastart0[No-1,Include] = P
+                deltastart0[No-1,Include] = Pd
 
     elif d == 1:
-        deltastart0 = np.arange(P+1)[np.newaxis].T
-        NoStart0 = P+1
+        deltastart0 = np.arange(Pd+1)[np.newaxis].T
+        NoStart0 = Pd+1
 
 
 
@@ -217,7 +214,7 @@ def BPC(ProbName,ObjInd,ObjNum,lb,ub,MaxNumFunEval):
             NoStart = NoStart0
             
         if n > n0:
-            XAdd = MultivariateLegendre2(D[(n-nadd):n,:],P,MaxIntOrder)
+            XAdd = MultivariateLegendre2(D[(n-nadd):n,:],Pd,MaxIntOrder)
             X = np.vstack((X, XAdd))
         
     
@@ -249,7 +246,7 @@ def BPC(ProbName,ObjInd,ObjNum,lb,ub,MaxNumFunEval):
         print('Total number of starting points is ', NoStart, '.')
     
         for i in range(NoStart):
-            [deltaopt[i,:], Q[i]] = Search(deltastart[i,:], Lambda, Nf, W, Y2, d, n, P, F, lrho, E, R00) 
+            [deltaopt[i,:], Q[i]] = Search(deltastart[i,:], Lambda, Nf, W, Y2, d, n, Pd, F, lrho, E, R00) 
             #print('Objective =', ObjInd, '. Function evaluation = ', n, '. Iteration =', iteration,'. Global search from ', i, '/', NoStart,' starting points completed.')
        
         iteration += 1
@@ -349,7 +346,7 @@ def BPC(ProbName,ObjInd,ObjNum,lb,ub,MaxNumFunEval):
             """
             #Active this for final version        
             # Evaluate true function at new design points  
-            NewObservations = MyFun(NextDesignPoints,lb,ub,ProbName,ObjInd,k)
+            NewObservations = MyFun(NextDesignPoints,lb,ub,ObjInd,ProblemName,k)
         
              # This is just for test
             # Deactive this for final version
@@ -358,7 +355,7 @@ def BPC(ProbName,ObjInd,ObjNum,lb,ub,MaxNumFunEval):
 
         
             # Compute predictions for new design points
-            predictions = Pred(NextDesignPoints, md, check3, P, MaxIntOrder)
+            predictions = Pred(NextDesignPoints, md, check3, Pd, MaxIntOrder)
         
             # Update design and vector of function evaluations
             D = np.vstack((D, NextDesignPoints))
@@ -405,7 +402,7 @@ def BPC(ProbName,ObjInd,ObjNum,lb,ub,MaxNumFunEval):
     # print(StorePredictionInfo)
 
     # xlswrite(Filename,{'d, initial design size, final design size, P, maximum order of interactions, tolerance 3, tolerance 1, tolerance 2, rho, gamma0, gamma, r'},'1','A1')
-    # xlswrite(Filename,[d n0 n P MaxIntOrder Tolerance3 Tolerance1 Tolerance2 rho gamma0 gamma r],'1','A2')
+    # xlswrite(Filename,[d n0 n Pd MaxIntOrder Tolerance3 Tolerance1 Tolerance2 rho gamma0 gamma r],'1','A2')
     # 
     # xlswrite(Filename,{'Set of starting models'},'M_0','A1')
     # xlswrite(Filename,deltastart0,'M_0','A2')
@@ -423,7 +420,7 @@ def BPC(ProbName,ObjInd,ObjNum,lb,ub,MaxNumFunEval):
                      
     Data.md = md  # check if there is need to use different type of srorage for the following data
     Data.check3 = check3
-    Data.P = P
+    Data.Pd = Pd
     Data.MaxIntOrder = MaxIntOrder
     Data.D = D
     Data.Y = Y

@@ -7,8 +7,8 @@ Created on Thu Apr  4 17:18:13 2019
 
 import numpy as np
 from scipy.special import comb
-
-from pyANOVAMOP.Metamodelling import orthonormal_polynomial_legendre,
+import itertools
+from pyANOVAMOP.Metamodelling.OrthonormalPolynomialLegendre import orthonormal_polynomial_legendre
 
 def MultivariateLegendre2(D, P, MaxIntOrder):
     """

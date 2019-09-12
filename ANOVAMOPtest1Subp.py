@@ -16,21 +16,37 @@ class ANOVAMOPtest1Subp(baseProblem):
     """
       New problem description.
     """
-        
+    def __init__(
+        self,
+        name=None,
+        num_of_variables=None,
+        num_of_objectives=None,
+        num_of_constraints=0,
+        upper_limits=1,
+        lower_limits=0,
+        SubProblemObjectiveIndices = [],
+    ):    
     
-    def objectives(self, 
-                   decision_variables, 
-                   SubProblemObjectiveIndices, 
-                   SubProblemVariablesIndices
-                   ) -> list:
+        self.SubProblemObjectiveIndices = []
+        super().__init__(
+            name,
+            num_of_variables,
+            num_of_objectives,
+            num_of_constraints,
+            upper_limits,
+            lower_limits,  
+        )
+    
+    
+    def objectives(self, decision_variables) -> list:
         """Use this method to calculate objective functions.
         Args:
             decision_variables: a sample  
         """
         
         x = decision_variables
-        NumObj = len(SubProblemObjectiveIndices) # e.g. 3
-        NumVar = len(SubProblemVariablesIndices) # e.g. 3
+        NumObj = len(self.SubProblemObjectiveIndices) # e.g. 3
+        #NumVar = len(SubProblemVariablesIndices) # e.g. 3
         
         numSample = 1 #, self.num_of_variables = np.shape(np.matrix(x))
         
@@ -51,7 +67,7 @@ class ANOVAMOPtest1Subp(baseProblem):
         Output = np.zeros(NumObj)
         i = 0
     
-        for objective in SubProblemObjectiveIndices: # range(NumObj) 
+        for objective in self.SubProblemObjectiveIndices: # range(NumObj) 
             
             if objective == 0:
                 Output[i] = Phi1 + epsilon * Phi4
@@ -78,6 +94,9 @@ name = "ANOVAMOPtest1Subp"
 numobj = 5
 numconst = 0
 numvar = 5
+
+ANOVAMOPtest1Subp.SubProblemObjectiveIndices = [] # it should assign in ANOVAMOP(main) before calling this class
+
 problem = ANOVAMOPtest1Subp(name, numvar, numobj, numconst, )
 
 lattice_resolution = 4
