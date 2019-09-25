@@ -13,7 +13,8 @@ Ref: https://www.geeksforgeeks.org/cartesian-product-of-any-number-of-sets/
 Cartesian Product of two sets
 """
 def Cartesian_Product(set_a, set_b): 
-    result =[] 
+    result = [] 
+    #set_aa = []
     for i in range(0, len(set_a)): 
         for j in range(0, len(set_b)): 
   
@@ -21,7 +22,10 @@ def Cartesian_Product(set_a, set_b):
             # prodct first time of two sets 
             if type(set_a[i]) != list:          
                 set_a[i] = [set_a[i]] 
-                  
+            
+            #else:
+            #    set_aa[i] = set_a[i]
+            
             # coping all the members 
             # of set_a to temp 
             temp = [num for num in set_a[i]] 
@@ -35,8 +39,34 @@ def Cartesian_Product(set_a, set_b):
 
 # Function to do a cartesian  
 # product of N sets  
-def Cartesian_Product_of_m(list_a):  # list_a must be a set or a list of tuples
-      
+def Cartesian_Product_of_m(list_a):  
+    
+    """
+    list_a must be a set or a list of tuples 
+
+    e.g. 
+    A = [(1, 1, 1), (2, 2, 2), (3, 3, 3)]
+    B = [(4, 4), (5, 5)]
+    C = [(6, 6), (7, 7)]
+    p = [A, B, C]
+
+    P = Cartesian_Product_of_m(p)
+
+    Out: 
+    [[(1, 1, 1), (4, 4), (6, 6)],
+     [(1, 1, 1), (4, 4), (7, 7)],
+     [(1, 1, 1), (5, 5), (6, 6)],
+     [(1, 1, 1), (5, 5), (7, 7)],
+     [(2, 2, 2), (4, 4), (6, 6)],
+     [(2, 2, 2), (4, 4), (7, 7)],
+     [(2, 2, 2), (5, 5), (6, 6)],
+     [(2, 2, 2), (5, 5), (7, 7)],
+     [(3, 3, 3), (4, 4), (6, 6)],
+     [(3, 3, 3), (4, 4), (7, 7)],
+     [(3, 3, 3), (5, 5), (6, 6)],
+     [(3, 3, 3), (5, 5), (7, 7)]]
+
+    """    
     # result of cartesian product 
     # of all the sets taken two at a time 
     temp = list_a[0] 
@@ -48,30 +78,7 @@ def Cartesian_Product_of_m(list_a):  # list_a must be a set or a list of tuples
     print(temp)             
     return temp
     
-"""
-e.g. 
-A = [(1, 1, 1), (2, 2, 2), (3, 3, 3)]
-B = [(4, 4), (5, 5)]
-C = [(6, 6), (7, 7)]
-p = [A, B, C]
 
-P = Cartesian_Product_of_m(p)
-
-Out: 
-[[(1, 1, 1), (4, 4), (6, 6)],
- [(1, 1, 1), (4, 4), (7, 7)],
- [(1, 1, 1), (5, 5), (6, 6)],
- [(1, 1, 1), (5, 5), (7, 7)],
- [(2, 2, 2), (4, 4), (6, 6)],
- [(2, 2, 2), (4, 4), (7, 7)],
- [(2, 2, 2), (5, 5), (6, 6)],
- [(2, 2, 2), (5, 5), (7, 7)],
- [(3, 3, 3), (4, 4), (6, 6)],
- [(3, 3, 3), (4, 4), (7, 7)],
- [(3, 3, 3), (5, 5), (6, 6)],
- [(3, 3, 3), (5, 5), (7, 7)]]
-
-"""  
     
 
 """

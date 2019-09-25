@@ -23,6 +23,7 @@ from scipy.optimize import minimize
 
 from pyANOVAMOP.CommonFiles.BuildMdelta import BuildMdelta
 from pyANOVAMOP.CommonFiles.Cartesian_product import Cartesian_Product
+from pyANOVAMOP.CommonFiles.Cartesian_product import Cartesian_Product_of_m
 #from pyANOVAMOP.CommonFiles import MyFun
 #from pyANOVAMOP.CommonFiles import P_objective
 from pyANOVAMOP.CommonFiles.SubProblem import SubProblem
@@ -51,12 +52,12 @@ Initialization>
 
 Input: Let f : [0, 1]^d → R^k be a black box vector function in (1). 
 """
-d=5 #Number of variables
-k=5 #Number of objective functons
+d=12 #Number of variables   5
+k=10 #Number of objective functons   5
 
 # Problem's name defined in P_objective.py --> 
 #If you have a new problem, all you need to do is to define it in P_objective.py as a new function and replace its name here by 'P_objective' + import it in ANOVAMOP(main) and MyFun.py as: from pyANOVAMOP.CommonFiles.P_objective import your_function_name .
-ProblemName = P_objective
+ProblemName = P_objective2
 
 
 DM = 1# 0 means non-interactive setting and 1 means interactive setting
@@ -391,7 +392,15 @@ if Decomposable: # 15: If Mδ is decomposable
                 #FinalSolutionDecisionSpace[0][SubProblemVariablesIndices.astype(int)] = xOptApp[SubProblemVariablesIndices.astype(int)] # p1m =
                 #FinalSolutionObjectiveSpace[0][SubProblemVariablesIndices.astype(int)] = fOptApp  # f1m =
                 
-            
+        """
+        18: Generate the Pareto optimal set & Pareto frontier for the original problem
+    
+          if p1m is a list of lists includes p1, p2, ..., pm are the Pareto sets of the subproblems; repectively.
+        """
+        PO = Cartesian_Product_of_m(p1m) # Pareto optimal set for the original problem
+        # Similarly, if f1m is a list of lists includes f1, f2, ..., fm are the Pareto frontier approximations of the subproblems; repectively.
+        FO = Cartesian_Product_of_m(f1m) # Pareto optimal frontier for the original problem
+    
             
             
             """----------------------------
@@ -476,28 +485,23 @@ if Decomposable: # 15: If Mδ is decomposable
                 if Tag == 0:
                     DoInteraction = 0
                     FinalSolutionDecisionSpace[0][SubProblemVariablesIndices.astype(int)] = xOptApp[SubProblemVariablesIndices.astype(int)] # p1m =
+                    #p1m.append([FinalSolutionDecisionSpace[0][SubProblemVariablesIndices.astype(int)]])
                     FinalSolutionObjectiveSpace[0][SubProblemVariablesIndices.astype(int)] = fOptApp  # f1m =
+                    #f1m.append(
                 
                             
                             
-            #save FinalSolutionDecisionSpace FinalSolutionDecisionSpace
-            #save FinalSolutionObjectiveSpace FinalSolutionObjectiveSpace
-            #print('The final solution in the objective space is')
-            #print('          [' num2str(FinalSolutionObjectiveSpace) ']')
-            #print('The final solution in the decision space is')
-            #print('          [' num2str(FinalSolutionDecisionSpace) ']')
-            
-                       
-                
+                            
     
-    """
-    18: Generate the Pareto optimal set & Pareto frontier for the original problem
+        """
+        18: Generate the Pareto optimal set & Pareto frontier for the original problem
     
-      if p1m is a list of lists includes p1, p2, ..., pm are the Pareto sets of the subproblems; repectively.
-    """
-    PO = Cartesian_Product_of_m(p1m) # Pareto optimal set for the original problem
-    # Similarly, if f1m is a list of lists includes f1, f2, ..., fm are the Pareto frontier approximations of the subproblems; repectively.
-    FO = Cartesian_Product_of_m(f1m) # Pareto optimal frontier for the original problem
+         In interactive methods, we will merge in the final prefered solution
+    
+        """
+        PO = FinalSolutionDecisionSpace # Pareto optimal set for the original problem
+        # Similarly, if f1m is a list of lists includes f1, f2, ..., fm are the Pareto frontier approximations of the subproblems; repectively.
+        FO = FinalSolutionObjectiveSpace # Pareto optimal frontier for the original problem
     
 elif Reducible:
     # Remove the column of zero from the Mδ
@@ -647,16 +651,8 @@ elif Reducible:
                 DoInteraction = 0
                 FinalSolutionDecisionSpace[0][SubProblemVariablesIndices.astype(int)] = xOptApp[SubProblemVariablesIndices.astype(int)] # p1m =
                 FinalSolutionObjectiveSpace[0][SubProblemVariablesIndices.astype(int)] = fOptApp  # f1m =
-                
-                            
-                            
-        #save FinalSolutionDecisionSpace FinalSolutionDecisionSpace
-        #save FinalSolutionObjectiveSpace FinalSolutionObjectiveSpace
-        #print('The final solution in the objective space is')
-        #print('          [' num2str(FinalSolutionObjectiveSpace) ']')
-        #print('The final solution in the decision space is')
-        #print('          [' num2str(FinalSolutionDecisionSpace) ']')
-            
+                                          
+                                               
         PO = FinalSolutionDecisionSpace
         FO = FinalSolutionObjectiveSpace
 
@@ -716,10 +712,10 @@ eps = (abs(Fopt - np.matrix(FoptDelta))).max() # max max |-|
 
 print("Pareto optimal set for the original problem is equal to:", PO)
 print("Pareto optimal frontier for the original problem is equal to:", FO)
-print(V)
-print(eps)
+print("Randomly validation sample V = ", V)
+print("Estimation of the approximation quality of the solutions is equal to:", eps)
 
-#return  (PO , FO , V, eps)
+# The end
 
 
 

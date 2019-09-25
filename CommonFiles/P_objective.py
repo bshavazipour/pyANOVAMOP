@@ -56,21 +56,11 @@ def P_objective(Input,k):
          x∈[−λ,λ]
 
 
-    f1(x) = g1(x) + γg4(x),              g1(x) = 
-(x1, x2, x3)T − P1T 
-2 , P1 = (1, 1, 1)T ,
-    f2(x) = g2(x) + γg5(x),              g2(x) = 
-(x1, x2, x3)T − P2T 
-2 , P2 = (1, −1, −1)T ,
-    f3(x) = g3(x) + γ(g4(x) + g5(x)),    g3(x) = 
-(x1, x2, x3)T − P3T 
-2 , P3 = (1, 1, −1)T ,
-    f4(x) = g4(x) + γg1(x),              g4(x) = 
-(x4, x5)T − P4T 
-2 , P4 = (1, −1)T ,
-    f5(x) = g5(x) + γ(g1(x) + g2(x)),    g5(x) = 
-(x4, x5)T − P5T 
-2 , P5 = (−1, 1)T ,
+    f1(x) = g1(x) + γg4(x),              g1(x) = (x1, x2, x3)T − P1T 2 , P1 = (1, 1, 1)T ,
+    f2(x) = g2(x) + γg5(x),              g2(x) = (x1, x2, x3)T − P2T 2 , P2 = (1, −1, −1)T ,
+    f3(x) = g3(x) + γ(g4(x) + g5(x)),    g3(x) = (x1, x2, x3)T − P3T 2 , P3 = (1, 1, −1)T ,
+    f4(x) = g4(x) + γg1(x),              g4(x) = (x4, x5)T − P4T 2 , P4 = (1, −1)T ,
+    f5(x) = g5(x) + γ(g1(x) + g2(x)),    g5(x) = (x4, x5)T − P5T 2 , P5 = (−1, 1)T ,
     with γ = 7.000×10−3.
     """
 
@@ -103,11 +93,11 @@ def P_objective(Input,k):
     P4 = np.array([1, -1])
     P5 = np.array([-1, 1])
         
-    Phi1 = ((x[:,0:3] - np.ones((numSample,1)) * P1) ** 2).sum(axis=1)
-    Phi2 = ((x[:,0:3] - np.ones((numSample,1)) * P2) ** 2).sum(axis=1)
-    Phi3 = ((x[:,0:3] - np.ones((numSample,1)) * P3) ** 2).sum(axis=1)
-    Phi4 = ((x[:,3:5] - np.ones((numSample,1)) * P4) ** 2).sum(axis=1)
-    Phi5 = ((x[:,3:5] - np.ones((numSample,1)) * P5) ** 2).sum(axis=1)
+    Phi1 = np.power((x[:,0:3] - np.ones((numSample,1)) * P1), 2).sum(axis=1)
+    Phi2 = np.power((x[:,0:3] - np.ones((numSample,1)) * P2), 2).sum(axis=1)
+    Phi3 = np.power((x[:,0:3] - np.ones((numSample,1)) * P3), 2).sum(axis=1)
+    Phi4 = np.power((x[:,3:5] - np.ones((numSample,1)) * P4), 2).sum(axis=1)
+    Phi5 = np.power((x[:,3:5] - np.ones((numSample,1)) * P5), 2).sum(axis=1)
         
     Output = np.empty((numSample,k))
     Output[:,0] = Phi1 + epsilon * Phi4
@@ -129,39 +119,15 @@ def P_objective2(Input,k):
     variables with S = [−λ, λ]12, where λ = 1.3. We minimize ten objectives of component
     functions deﬁned as follows with γ = 7.000 × 10−3:
         
-        f1(x) = g1(x) + γg4(x), g1(x) = 
-(x1, x2, x3)T − P1T 
-2 , P1 = (1, 1, 1)T ,
-        f2(x) = g2(x) + γg5(x), g2(x) = 
-(x1, x2, x3)T − P2T 
-2 , P2 = (1, −1, −1)T ,
-        f3(x) = g3(x) + γ(g4(x) + g6(x)), g3(x) = 
-(x1, x2, x3)T − P3T 
-2 ,
-
-                          P3 = (1, 1, −1)T ,
-        f4(x) = g4(x) + γ(g1(x) + g7(x)), g4(x) = 
-(x4, x5, x6)T − P4T 
-2 ,
-
-                        P4 = (−1, −1, −1)T ,
-        f5(x) = g5(x) + γ(g2(x) + g8(x)), g5(x) = 
-(x4, x5, x6)T − P5T 
-2 ,
-
-                 P5 = (−1, 1, −1)T ,
-        f6(x) = g6(x) + γ(g3(x) + g9(x)), g6(x) = 
-(x4, x5, x6)T − P6T 
-2 , P6 = (−1, −1, 1)T ,
-        f7(x) = g7(x) + γ(g2(x) + g5(x)), g7(x) = 
-(x7, x8)T − P7T 
-2 , P7 = (1, −1)T ,
-        f8(x) = g8(x) + γ(g1(x) + g4(x) + g9(x)), g8(x) = 
-(x7, x8)T − P8T 
-2 , P8 = (−1, 1)T ,
-
+        f1(x) = g1(x) + γg4(x), g1(x) = (x1, x2, x3)T − P1T 2 , P1 = (1, 1, 1)T ,
+        f2(x) = g2(x) + γg5(x), g2(x) = (x1, x2, x3)T − P2T 2 , P2 = (1, −1, −1)T ,
+        f3(x) = g3(x) + γ(g4(x) + g6(x)), g3(x) = (x1, x2, x3)T − P3T 2 ,  P3 = (1, 1, −1)T ,
+        f4(x) = g4(x) + γ(g1(x) + g7(x)), g4(x) = (x4, x5, x6)T − P4T 2 ,   P4 = (−1, −1, −1)T ,
+        f5(x) = g5(x) + γ(g2(x) + g8(x)), g5(x) = (x4, x5, x6)T − P5T 2 ,   P5 = (−1, 1, −1)T ,
+        f6(x) = g6(x) + γ(g3(x) + g9(x)), g6(x) = (x4, x5, x6)T − P6T 2 , P6 = (−1, −1, 1)T ,
+        f7(x) = g7(x) + γ(g2(x) + g5(x)), g7(x) = (x7, x8)T − P7T 2 , P7 = (1, −1)T ,
+        f8(x) = g8(x) + γ(g1(x) + g4(x) + g9(x)), g8(x) = (x7, x8)T − P8T 2 , P8 = (−1, 1)T ,
         f9(x) = g9(x) + γ(g3(x) + g6(x) + g8(x)), g9(x) = Sum( sin(xi) + cos(xi) ) , xi = 9, ...,12
-
         f10(x) = g10(x) + γ(g4(x) + g5(x)), g10(x) = Sum( sin(-xi) + cos(-xi) ) , xi = 9, ..., 12
   
     """

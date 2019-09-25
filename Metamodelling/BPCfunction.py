@@ -65,12 +65,12 @@ def BPC(ObjInd,lb,ub,MaxNumFunEval, ProblemName,d,k):
     #d = 5
     #k = ObjNum # Number of objectives
     #Maximum polynomial degree of orthonormal polynomial regressors
-    Pd = 5
+    Pd = 12 # 5 original
     #Maximum order of ANOVA functional components to allow in regression
     MaxIntOrder = d
 
     # Maximum number of function evaluation
-    MaxNumFunEval = 100
+    MaxNumFunEval = 100 
 
     #Compute initial sample size
     p0 = 4
@@ -217,7 +217,7 @@ def BPC(ObjInd,lb,ub,MaxNumFunEval, ProblemName,d,k):
             XAdd = MultivariateLegendre2(D[(n-nadd):n,:],Pd,MaxIntOrder)
             X = np.vstack((X, XAdd))
         
-    
+        
         #Compute the centered response used in model selection
         mY = Y.mean(0) # Y must be array or matrix (np.array or np.matrix)
         Y2 = Y - X[:,0] * mY
