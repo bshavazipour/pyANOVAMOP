@@ -296,8 +296,15 @@ def SimulateSobolIndices(model, X, W, Y2, mY, d, n, M2, Nf, R00, gamma0, gamma, 
             stop=1
         else:
             TotalSampleSizeNeeded = (np.vstack((Variance, Variance2)) / 0.00025 ** 2).max(0)
+            if np.isnan(TotalSampleSizeNeeded): # To be sure TotalSampleSizeNeeded is not infinite
+                TotalSampleSizeNeeded = 100000 #np.nan_to_num(TotalSampleSizeNeeded)
             OldSampleSize = NewSampleSize
             NewSampleSize = np.ceil(TotalSampleSizeNeeded)
+            for j in range(NI):
+                SobolIndices[j].extend(None for i in range(int(NewSampleSize - OldSampleSize)))
+            
+            for j in range(d):
+                TotalSensitivityIndices[j].extend(None for i in range(int(NewSampleSize) - int(OldSampleSize)))
         
     # End of while 
     

@@ -22,10 +22,10 @@ from pyANOVAMOP.Decomposition.connectedComponents import Graph
 def CheckDecomposability(d, k, Mdelta):
     # building the edges in (undirected) bipartite graph
     g = Graph(d + k);
-    for i in range(d):
-        for l in range(k):
+    for i in range(k):
+        for l in range(d):
             if Mdelta[i][l] == 1:
-                g.addEdge(i, d + l)            
+                g.addEdge(i, k + l)            
     cc = g.connectedComponents()          
     print("Following are connected components")
     print(cc)  # cc is a list of lists includes the  connected components of the graph

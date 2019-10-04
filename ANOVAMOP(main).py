@@ -35,6 +35,8 @@ from pyANOVAMOP.Decomposition.CheckDecomposability import SubProblems
 from pyANOVAMOP.Metamodelling.BPCfunction import BPC
 from pyANOVAMOP.Metamodelling.SurrogatePrediction import SurrogatePrediction
 
+from pyANOVAMOP.CommonFiles.P_objective import P_objective
+from pyANOVAMOP.CommonFiles.P_objective import P_objective2
 
 from pyANOVAMOP import ANOVAMOPtest1SubpSurrogate
 
@@ -44,8 +46,7 @@ from pyrvea.EAs.RVEA import RVEA
 from pyrvea.EAs.NSGAIII import NSGAIII
 
 
-from pyANOVAMOP.CommonFiles.P_objective import P_objective
-from pyANOVAMOP.CommonFiles.P_objective import P_objective2
+
 
 """
 Initialization>
@@ -273,12 +274,12 @@ if Decomposable: # 15: If Mδ is decomposable
     """
     16 ->  17  ->  18
     
-    #NumberSubProblems = cc # Number of components/blocks found by ANOVA decomposition in reMdelta
+    
     
     16:  Decompose problem with fδ in approximated subproblems with f^(1), . . . , f^(m) as described in Remark 6.
     
     """
-     
+    NumberSubProblems = len(cc) # Number of components/blocks found by ANOVA decomposition in reMdelta 
     fdelta = SubProblems(k, d, cc)
     
     PO =  [[None] for i in range(k)]   # Pareto optimal set for the original problem with k objectives and d variables
@@ -486,7 +487,7 @@ if Decomposable: # 15: If Mδ is decomposable
                     DoInteraction = 0
                     FinalSolutionDecisionSpace[0][SubProblemVariablesIndices.astype(int)] = xOptApp[SubProblemVariablesIndices.astype(int)] # p1m =
                     #p1m.append([FinalSolutionDecisionSpace[0][SubProblemVariablesIndices.astype(int)]])
-                    FinalSolutionObjectiveSpace[0][SubProblemVariablesIndices.astype(int)] = fOptApp  # f1m =
+                    FinalSolutionObjectiveSpace[0][SubProblemObjectiveIndices] = fOptApp  # f1m =
                     #f1m.append(
                 
                             
@@ -650,7 +651,7 @@ elif Reducible:
             if Tag == 0:
                 DoInteraction = 0
                 FinalSolutionDecisionSpace[0][SubProblemVariablesIndices.astype(int)] = xOptApp[SubProblemVariablesIndices.astype(int)] # p1m =
-                FinalSolutionObjectiveSpace[0][SubProblemVariablesIndices.astype(int)] = fOptApp  # f1m =
+                FinalSolutionObjectiveSpace[0][SubProblemObjectiveIndices] = fOptApp  # f1m =
                                           
                                                
         PO = FinalSolutionDecisionSpace

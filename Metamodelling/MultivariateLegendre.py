@@ -75,7 +75,12 @@ def MultivariateLegendre(D, Pd, MaxIntOrder):
                     MultivariateLegendre[:,t] = MultivariateLegendre[:,t] * PolynomialEvals[Combinations[k,i]-1][:,int(alpha[l,i])]
             
             r += 1
-            AnovaIndicators[r-1, Combinations[k,:]-1] = 1
+            if (r-1) < Nf:
+                AnovaIndicators[r-1, Combinations[k,:]-1] = 1
+            else:
+                AnovaIndicators = np.vstack([AnovaIndicators, np.zeros((1,d))])
+                AnovaIndicators[r-1, Combinations[k,:]-1] = 1
+                
             u2 = u + No2    
             storealpha[u:u2, Combinations[k,:]-1] = alpha
             Lambda[0,u:u2] = r-1

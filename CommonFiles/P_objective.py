@@ -147,16 +147,16 @@ def P_objective2(Input,k):
     P7 = np.array([1, -1])
     P8 = np.array([-1, 1])
         
-    Phi1 = ((x[:,0:3] - np.ones((numSample,1)) * P1) ** 2).sum(axis=1)  # g1
-    Phi2 = ((x[:,0:3] - np.ones((numSample,1)) * P2) ** 2).sum(axis=1)  # g2
-    Phi3 = ((x[:,0:3] - np.ones((numSample,1)) * P3) ** 2).sum(axis=1)
-    Phi4 = ((x[:,3:6] - np.ones((numSample,1)) * P4) ** 2).sum(axis=1)
-    Phi5 = ((x[:,3:6] - np.ones((numSample,1)) * P5) ** 2).sum(axis=1)
-    Phi6 = ((x[:,3:6] - np.ones((numSample,1)) * P6) ** 2).sum(axis=1)
-    Phi7 = ((x[:,6:8] - np.ones((numSample,1)) * P7) ** 2).sum(axis=1)
-    Phi8 = ((x[:,6:8] - np.ones((numSample,1)) * P8) ** 2).sum(axis=1)
-    Phi9 = np.sin(x[:,8:13]).sum() + np.cos(x[:,8:13]).sum() # check if there is need to change x_i values to radian/degrees
-    Phi10 = np.sin(-x[:,8:13]).sum() + np.cos(-x[:,8:13]).sum()
+    Phi1 = np.power((x[:,0:3] - np.ones((numSample,1)) * P1), 2).sum(axis=1)  # g1
+    Phi2 = np.power((x[:,0:3] - np.ones((numSample,1)) * P2), 2).sum(axis=1)  # g2
+    Phi3 = np.power((x[:,0:3] - np.ones((numSample,1)) * P3), 2).sum(axis=1)
+    Phi4 = np.power((x[:,3:6] - np.ones((numSample,1)) * P4), 2).sum(axis=1)
+    Phi5 = np.power((x[:,3:6] - np.ones((numSample,1)) * P5), 2).sum(axis=1)
+    Phi6 = np.power((x[:,3:6] - np.ones((numSample,1)) * P6), 2).sum(axis=1)
+    Phi7 = np.power((x[:,6:8] - np.ones((numSample,1)) * P7), 2).sum(axis=1)
+    Phi8 = np.power((x[:,6:8] - np.ones((numSample,1)) * P8), 2).sum(axis=1)
+    Phi9 = np.sin(x[:,8:13]).sum(1) + np.cos(x[:,8:13]).sum(1) # check if there is need to change x_i values to radian/degrees
+    Phi10 = np.sin(-x[:,8:13]).sum(1) + np.cos(-x[:,8:13]).sum(1)
 
     
     Output = np.empty((numSample,k))
