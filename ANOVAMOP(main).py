@@ -362,7 +362,17 @@ if Decomposable: # 15: If Mδ is decomposable
                 # You can choose the solver (RVEA or NSGAIII)
                 pop.evolve(NSGAIII)
 
-                xParetoTemp = pop.non_dominated()
+                non_dom_index = pop.non_dominated() 
+                
+                xParetoTemp = pop.individuals[non_dom_index[0]]
+                xsize = np.shape(xParetoTemp)
+                
+                fParetoTemp = pop.fitness[non_dom_index[0]]  # it seems that the folowing objective calculations are not necessary as they can be returned here
+                xsize = np.shape(xParetoTemp)
+                
+                p1m[0] = xParetoTemp # p1m = p1 ... pm  (SubProblemsDecisionSpacePareto)
+                f1m[0] = fParetoTemp   # f1m = f1 ... fm  (SubProblemsObjectiveSpacePareto)   
+                
 
                 #refpoint = 2
                 #volume = 2 ** numobj
@@ -388,8 +398,8 @@ if Decomposable: # 15: If Mδ is decomposable
                     
                     i += 1
         
-                ?    p1m[0][objective] = xParetoTemp[objective] # p1m = p1 ... pm  (SubProblemsDecisionSpacePareto)
-                ?    f1m[0][objective] = fOptApp[i]   # f1m = f1 ... fm  (SubProblemsObjectiveSpacePareto)   
+                    p1m[0][objective] = xParetoTemp[objective] # p1m = p1 ... pm  (SubProblemsDecisionSpacePareto)
+                    f1m[0][objective] = fOptApp[i]   # f1m = f1 ... fm  (SubProblemsObjectiveSpacePareto)   
                 #FinalSolutionDecisionSpace[0][SubProblemVariablesIndices.astype(int)] = xOptApp[SubProblemVariablesIndices.astype(int)] # p1m =
                 #FinalSolutionObjectiveSpace[0][SubProblemVariablesIndices.astype(int)] = fOptApp  # f1m =
                 

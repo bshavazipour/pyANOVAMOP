@@ -70,7 +70,7 @@ def BPC(ObjInd,lb,ub,MaxNumFunEval, ProblemName,d,k):
     MaxIntOrder = 2#d  for high dimentional problems it should be fixed at 2
 
     # Maximum number of function evaluation
-    MaxNumFunEval = 100 
+    #MaxNumFunEval = 100
 
     #Compute initial sample size
     p0 = 4
@@ -317,7 +317,7 @@ def BPC(ObjInd,lb,ub,MaxNumFunEval, ProblemName,d,k):
                 print('Procedure terminated. Changes in posterior mean of regression coefficients are small but prediction criterion/criteria does/do not meet tolerance(s).')
         
  
-        if iteration >= 4: #30:  # we can have a termination commond for max iteration  (particularly for high dimentional problems)
+        if iteration >= 8: #30:  # we can have a termination commond for max iteration  (particularly for high dimentional problems)
             stop=1
             print('Maximum iteration is reached')
     

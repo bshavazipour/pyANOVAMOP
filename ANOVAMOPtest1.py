@@ -6,14 +6,70 @@ Created on Mon Aug 26 12:59:13 2019
 """
 
 
-from pyANOVAMOP.Solvers.pyRVEA.pyrvea.Population.Population import Population
-from pyANOVAMOP.Solvers.pyRVEA.pyrvea.Problem.baseProblem import baseProblem
-from pyANOVAMOP.Solvers.pyRVEA.pyrvea.EAs.RVEA import RVEA
-from pyANOVAMOP.Solvers.pyRVEA.pyrvea.EAs.NSGAIII import NSGAIII
-#from optproblems import dtlz
 import numpy as np
 
-class ANOVAMOPtest1(baseProblem):
+from pyrvea.Population.Population import Population
+#from pyrvea.Problem.baseproblem import BaseProblem
+from pyrvea.EAs.RVEA import RVEA
+#from pyrvea.EAs.slowRVEA import slowRVEA
+from pyrvea.EAs.NSGAIII import NSGAIII
+from optproblems import dtlz
+
+
+class BaseProblem:
+    """Base class for the problems."""
+
+    def __init__(
+        self,
+        name=None,
+        num_of_variables=None,
+        num_of_objectives=None,
+        num_of_constraints=0,
+        upper_limits=1,
+        lower_limits=0,
+    ):
+        """
+        Pydocstring is ruthless.
+        Parameters
+        ----------
+        name
+        num_of_variables
+        num_of_objectives
+        num_of_constraints
+        upper_limits
+        lower_limits
+        """
+        self.name = name
+        self.num_of_variables = num_of_variables
+        self.num_of_objectives = num_of_objectives
+        self.num_of_constraints = num_of_constraints
+        self.obj_func = []
+        self.upper_limits = upper_limits
+        self.lower_limits = lower_limits
+        self.minimize = None
+
+    def objectives(self, decision_variables):
+        """Accept a sample. Return Objective values.
+        Parameters
+        ----------
+        decision_variables
+        """
+        pass
+
+    def constraints(self, decision_variables, objective_variables):
+        """Accept a sample and/or corresponding objective values.
+        Parameters
+        ----------
+        decision_variables
+        objective_variables
+        """
+        pass
+
+    def update(self):
+        """Update the problem based on new information."""
+        pass
+
+class ANOVAMOPtest1(BaseProblem):
     """
       New problem description.
     """
@@ -58,18 +114,29 @@ name = "ANOVAMOPtest1"
 numobj = 5
 numconst = 0
 numvar = 5
-problem = ANOVAMOPtest1(name, numvar, numobj, numconst, )
+problem = ANOVAMOPtest1(name, numvar, numobj, numconst)
 
 lattice_resolution = 4
 population_size = 105
 
 pop = Population(problem)
+#pop = Population(
+#    problem,
+#    crossover_type="simulated_binary_crossover",
+#    mutation_type="bounded_polynomial_mutation",
+#)
 
-pop.evolve(NSGAIII)
+pop.evolve(RVEA)
 
-pop.non_dominated()
+non_dom_index = pop.non_dominated() 
+                
+xParetoTemp = pop.individuals[non_dom_index[0]]
+xsize = np.shape(xParetoTemp)
+                
+fParetoTemp = pop.fitness[non_dom_index[0]]
+xsize = np.shape(xParetoTemp)
 
-refpoint = 2
-volume = 2 ** numobj
+#refpoint = 2
+#volume = 2 ** numobj
 #print(pop.hypervolume(refpoint) / volume)
 

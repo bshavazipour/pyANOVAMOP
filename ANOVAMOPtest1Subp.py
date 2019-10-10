@@ -6,13 +6,13 @@ Created on Mon Aug 26 14:11:23 2019
 """
 
 from pyrvea.Population.Population import Population
-from pyrvea.Problem.baseProblem import baseProblem
+from pyrvea.Problem.baseproblem import BaseProblem
 from pyrvea.EAs.RVEA import RVEA
 from pyrvea.EAs.NSGAIII import NSGAIII
 
 import numpy as np
 
-class ANOVAMOPtest1Subp(baseProblem):
+class ANOVAMOPtest1Subp(BaseProblem):
     """
       New problem description.
     """
@@ -104,10 +104,16 @@ population_size = 105
 
 pop = Population(problem)
 
-pop.evolve(RVEA)
+pop.evolve(NSGAIII)
 
-pop.non_dominated()
+non_dom_index = pop.non_dominated() 
+                
+xParetoTemp = pop.individuals[non_dom_index[0]]
+xsize = np.shape(xParetoTemp)
+                
+fParetoTemp = pop.fitness[non_dom_index[0]]
+xsize = np.shape(xParetoTemp)
 
-refpoint = 2
-volume = 2 ** numobj
+#refpoint = 2
+#volume = 2 ** numobj
 #print(pop.hypervolume(refpoint) / volume)
